@@ -7,5 +7,5 @@ addons:
     token:
         secure: "5446a25e4ba997c058ee90c624f369c7d58ac7af"
 script:
-  -sonar-scanner
+  - sonar-scanner
     
