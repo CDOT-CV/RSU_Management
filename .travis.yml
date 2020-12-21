@@ -4,8 +4,7 @@ python:
 addons:
   sonarcloud:
     organization: "cdot-cv"
-    token:
-        secure: "5446a25e4ba997c058ee90c624f369c7d58ac7af"
+    token: ${SONAR_TOKEN}
 script:
   - sonar-scanner
     
