@@ -1,14 +1,6 @@
 language: python
 python:
   - "3.6"
-install:
-  - pip install ndjson
-  - pip install lxml
-  - pip install google-cloud-bigquery
-  - pip install google-cloud-storage
-  - pip install pandas
-  - pip install numpy
-  - pip install config
 branches:
   only:
     - main
