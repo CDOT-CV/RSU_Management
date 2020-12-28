@@ -18,6 +18,4 @@ addons:
     organization: "cdot-cv"
     token: ${SONAR_TOKEN}
 script:
-  - sonar-scanner
-  - python main.py
-    
+  - sonar-scanner    
