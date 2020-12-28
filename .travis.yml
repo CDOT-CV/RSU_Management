@@ -1,10 +1,23 @@
 language: python
 python:
   - "3.6"
+install:
+  - pip install ndjson
+  - pip install lxml
+  - pip install google-cloud-bigquery
+  - pip install google-cloud-storage
+  - pip install pandas
+  - pip install numpy
+  - pip install config
+branches:
+  only:
+    - master
+    - CV-29
 addons:
   sonarcloud:
     organization: "cdot-cv"
     token: ${SONAR_TOKEN}
 script:
   - sonar-scanner
+  - python main.py
     
