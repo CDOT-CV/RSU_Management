@@ -1,7 +1,6 @@
 import sys
 sys.path.append("..")
 from data_manager.source_code import main
-import main
 import json
 
 """
