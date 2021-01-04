@@ -1,6 +1,0 @@
-google-cloud-bigquery
-lxml
-mechanize
-bs4
-html2text
-selenium
