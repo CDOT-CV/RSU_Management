@@ -8,5 +8,5 @@ addons:
 script:
   - coverage erase
   - coverage run -m pytest 'tests/'
-  - coverage xml-i    
+  - coverage xml -i    
   - sonar-scanner
