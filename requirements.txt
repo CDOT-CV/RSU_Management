@@ -3,6 +3,7 @@ google-cloud-storage
 google-cloud-pubsub
 ndjson
 pytest
+pytest-cov
 pandas
 numpy
 config
