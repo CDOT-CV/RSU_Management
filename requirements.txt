@@ -7,4 +7,4 @@ pytest-cov
 pandas
 numpy
 config
-main
+
