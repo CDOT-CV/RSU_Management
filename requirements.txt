@@ -2,9 +2,7 @@ google-cloud-bigquery
 google-cloud-storage
 google-cloud-pubsub
 ndjson
-json
 pytest
 pandas
 numpy
-datetime
 config
