@@ -146,7 +146,7 @@ def main(data, context):
 
     print("1. Loading Google App credentials.")
     # setting the Google Application Credentials to JSON with service account key
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = r"C:\Users\divav\Desktop\CDOT\gcp_test\CDOT CV ODE Dev-4d9416c81201.json"
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = r"sample_creds.json"
     
     #bq_client = bigquery.Client()                  # GCP BigQuery client object for dataset/table use!
     bucket_client = storage.Client()                # GCP storage client object for bucket use!
