@@ -1,0 +1,8 @@
+google-cloud-bigquery
+google-cloud-storage
+google-cloud-pubsub
+ndjson
+pytest
+pandas
+numpy
+config

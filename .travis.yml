@@ -1,6 +1,12 @@
 language: python
 python:
   - "3.6"
-
+addons:
+  sonarcloud:
+    organization: "cdot-cv"
+    token: ${SONAR_TOKEN}
 script:
-  - pytest
+  - coverage erase
+  - coverage run -m pytest tests/
+  - coverage xml-i    
+  - sonar-scanner
