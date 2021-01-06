@@ -1,16 +1,10 @@
 import sys
 sys.path.append("..")
-#from data_manager.source_code import main
+from data_manager.source_code import main
 import mock
 import os
 from google.cloud.storage import Client
 from google.cloud.pubsub_v1 import PublisherClient
-from main import rsu_raw_bucket
-from main import rsu_data_warehouse_bucket
-from main import help_warehouse
-from main import is_json_clean
-#from main import main
-#import main
 
 """
 This script handles the unit testing for main.py.
@@ -23,7 +17,7 @@ def test_rsu_raw_bucket(client):
     
     raw_bucket = client().get_bucket
     file_name = 'json_test1'
-    file_path = 'gcp_test/RSU-ND.json'
+    file_path = 'RSU-ND.json'
     rsu_raw_bucket(client(), file_name,file_path,'rsu_raw-ingest')
     
     blob = raw_bucket().blob
