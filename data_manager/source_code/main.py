@@ -15,8 +15,8 @@ import requests
 import os
 import pytest
 from google.cloud import bigquery   # google cloud - bigquery / dataset-table access
-from google.cloud import storage    # google cloud - storage / bucket access
-from google.cloud import pubsub_v1  # google cloud - pub/sub topic access
+from google.cloud.storage import Client    # google cloud - storage / bucket access
+from google.cloud.pubsub_v1 import PublisherClient  # google cloud - pub/sub topic access
 # below: for data cleaning
 import pandas as pd
 import numpy as np
@@ -41,7 +41,7 @@ def is_json_clean(rsu_data):
     if len(rsu_data) == len(set(rsu_data)):
         return True
 
-def rsu_raw_bucket(client):
+def rsu_raw_bucket(client, filename, filepath, bucket_name):
     """
     -----------------------------------------------------------------------
     Executes the transfer of raw data from the roadside unit to the 
@@ -51,15 +51,16 @@ def rsu_raw_bucket(client):
     -----------------------------------------------------------------------
     """
     
-    raw_bucket = client.get_bucket('rsu_raw-ingest')
-    json_file = r'gcp_test\RSU-ND.json'
-    raw_blob = raw_bucket.blob(json_file)
-    raw_blob.upload_from_filename(filename=json_file)
+    raw_bucket = client.get_bucket(bucket_name)
+    #json_file = r'gcp_test\RSU-ND.json'
+    raw_blob = raw_bucket.blob(filename)
+    print("checkpoint")
+    raw_blob.upload_from_filename(filename=filepath)
     
     # logging raw ingest upload message
     current_time = datetime.datetime.utcnow()                   
     log_message = Template('Raw ingest updated with new file at $time')
-    logging.info(log_message.safe_substitute(time=current_time))       
+    logging.info(log_message.safe_substitute(time=current_time))
 
 def rsu_data_lake_bucket(client):
     """
@@ -83,11 +84,18 @@ def rsu_data_lake_bucket(client):
             # IF DATA IS CLEAN: copy the blob to the data lake
             if is_json_clean(json_data) is True:  
                 raw_bucket.copy_blob(blob, data_lake_bucket)
-        except Exception as error:
+        except Exception as error:  # find more specific exceptions
             log_message = Template('Invalid JSON string from raw ingest: $message.')
             logging.error(log_message.safe_substitute(message=error))        
 
-def rsu_data_warehouse_bucket(b_client, p_client):
+def help_warehouse(list_blobs, client, topic):
+    for blob in list_blobs:
+        print("we have a blob")
+        data_string = blob.download_as_string()                 # data MUST be a byte string
+        future = client.publish(topic,data_string)       # when message is published, the client returns a "future"
+        print(future.result())       
+
+def rsu_data_warehouse_bucket(pub_client, storage_client, topic, bucket):
     """
     -----------------------------------------------------------------------
     Will push data from the data lake to the designated Pub/Sub topic which
@@ -97,41 +105,14 @@ def rsu_data_warehouse_bucket(b_client, p_client):
     Parameter: p_client --> object referencing GCP Publisher Client
     -----------------------------------------------------------------------
     """
-    topic_path = p_client.topic_path('cdot-cv-ode-dev','rsu_data_warehouse')
-    data_lake_bucket = b_client.get_bucket('rsu_data-lake')      
-    lake_blobs = b_client.list_blobs(data_lake_bucket)          # retrieving data lake bucket
-    
-    for blob in lake_blobs:
-        data_string = blob.download_as_string()                 # data MUST be a byte string
-        future = p_client.publish(topic_path,data_string)       # when message is published, the client returns a "future"
-        print(future.result())       
+    lake_bucket = storage_client.get_bucket(bucket)
+    lake_blobs = storage_client.list_blobs(lake_bucket)          # retrieving data lake bucket
+    print(len(lake_blobs))
+    help_warehouse(lake_blobs, pub_client, topic)
 
     # logging publication message
     current_time = datetime.datetime.utcnow()    
     log_message = Template('Published message to the warehouse pub/sub topic at $time')
-    logging.info(log_message.safe_substitute(time=current_time))
-
-def send_to_table(client):
-    """
-    -----------------------------------------------------------------------
-    Executes the transfer of data from the data source file to the 
-    specified GCP table.
-
-    Parameter: client --> object referencing a BigQuery Client
-    -----------------------------------------------------------------------
-    """
-    
-    job_config = bigquery.LoadJobConfig(source_format='NEWLINE_DELIMITED_JSON')
-
-    # transfer to GCP table via LOCAL JSON FILE
-    print("Sending to GCP.")
-    with open('gcp_test-ND.json', 'rb') as data_source:
-        job = client.load_table_from_file(data_source, 'cdot-cv-ode-dev.rsu_sample.gcp_test_table', job_config=job_config)
-
-    job.result() # waits for the data transfer to complete
-    print("Sent to GCP table!")
-    current_time = datetime.datetime.utcnow()
-    log_message = Template('RSU file #(insert no.) sent to the GCP table at $time.')
     logging.info(log_message.safe_substitute(time=current_time))
 
 def main(data, context):
@@ -147,12 +128,13 @@ def main(data, context):
 
     print("1. Loading Google App credentials.")
     # setting the Google Application Credentials to JSON with service account key
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = r"sample_creds.json"
-    
-    #bq_client = bigquery.Client()                  # GCP BigQuery client object for dataset/table use!
-    bucket_client = storage.Client()                # GCP storage client object for bucket use!
-    pubsub_client = pubsub_v1.PublisherClient()     # GCP publisher client for pub/sub topic
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = r"C:\Users\divav\Desktop\CDOT\gcp_test\CDOT CV ODE Dev-4d9416c81201.json"
+
+    json_file = 'gcp_test/RSU-ND.json'
     print("2. Established bucket and pubsub client!")
+
+    topic_path = PublisherClient().topic_path('cdot-cv-ode-dev','rsu_data_warehouse')
+    data_lake_bucket = 'rsu_data-lake'
     
     try:
         current_time = datetime.datetime.utcnow()
@@ -160,13 +142,12 @@ def main(data, context):
         logging.info(log_message.safe_substitute(time=current_time))
 
         try:
-            #send_to_table(bq_client)
             print("3. Begin filling buckets . . .")
-            rsu_raw_bucket(bucket_client)
+            rsu_raw_bucket(Client(), "json_obj1", json_file, 'rsu_raw-ingest')
             print("4. Filled bucket #1: RAW INGEST.")
-            rsu_data_lake_bucket(bucket_client)
-            print("5. Filled bucket #2: DATA LAKE.")
-            rsu_data_warehouse_bucket(bucket_client, pubsub_client)
+            #rsu_data_lake_bucket(bucket_client)
+            #print("5. Filled bucket #2: DATA LAKE.")
+            rsu_data_warehouse_bucket(Client(), PublisherClient(), topic_path, data_lake_bucket)
             print("6. Filled bucket #3: DATA WAREHOUSE.")
         
         except Exception as error:
