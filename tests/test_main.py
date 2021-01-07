@@ -1,15 +1,11 @@
 import sys
 sys.path.append("..")
-#from data_manager.source_code import main
+from data_manager.source_code import main
 import mock
 import os
 import pytest
 from google.cloud.storage import Client
 from google.cloud.pubsub_v1 import PublisherClient
-from main import rsu_raw_bucket
-from main import rsu_data_warehouse_bucket
-from main import rsu_data_lake_bucket
-from main import help_warehouse
 
 """
 This script handles the unit testing for main.py.
