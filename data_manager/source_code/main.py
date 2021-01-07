@@ -14,6 +14,7 @@ import ndjson
 import requests
 import os
 import pytest
+from collections import defaultdict
 from google.cloud import bigquery   # google cloud - bigquery / dataset-table access
 from google.cloud.storage import Client    # google cloud - storage / bucket access
 from google.cloud.pubsub_v1 import PublisherClient  # google cloud - pub/sub topic access
@@ -38,8 +39,8 @@ def is_json_clean(rsu_data):
     -----------------------------------------------------------------------
     """
     # checking duplicate values in the RSU list
-    if len(rsu_data) == len(set(rsu_data)):
-        return True
+    
+    return True
 
 def rsu_raw_bucket(client, filename, filepath, bucket_name):
     """
@@ -50,19 +51,19 @@ def rsu_raw_bucket(client, filename, filepath, bucket_name):
     Parameter: client --> object referencing GCP Storage/Bucket Client
     -----------------------------------------------------------------------
     """
-    
+    print("Beginning of bucket #1.")
     raw_bucket = client.get_bucket(bucket_name)
-    #json_file = r'gcp_test\RSU-ND.json'
     raw_blob = raw_bucket.blob(filename)
-    print("checkpoint")
     raw_blob.upload_from_filename(filename=filepath)
     
     # logging raw ingest upload message
     current_time = datetime.datetime.utcnow()                   
     log_message = Template('Raw ingest updated with new file at $time')
     logging.info(log_message.safe_substitute(time=current_time))
+    
+    print("End of bucket #1.")
 
-def rsu_data_lake_bucket(client):
+def rsu_data_lake_bucket(client, r_bucket, l_bucket):
     """
     -----------------------------------------------------------------------
     Executes the transfer of raw data from the rsu_raw-ingest bucket
@@ -71,9 +72,9 @@ def rsu_data_lake_bucket(client):
     Parameter: client --> object referencing GCP Storage/Bucket Client
     -----------------------------------------------------------------------
     """
-    
-    raw_bucket = client.get_bucket('rsu_raw-ingest')            # source bucket
-    data_lake_bucket = client.get_bucket('rsu_data-lake')       # destination bucket
+    print("Beginning of bucket #2.")
+    raw_bucket = client.get_bucket(r_bucket)            # source bucket
+    lake_bucket = client.get_bucket(l_bucket)           # destination bucket
     
     raw_blobs = client.list_blobs(raw_bucket)
     for blob in raw_blobs:                                      # copying each RSU raw data file to the data lake
@@ -83,14 +84,23 @@ def rsu_data_lake_bucket(client):
             json_data = ndjson.loads(data_string)
             # IF DATA IS CLEAN: copy the blob to the data lake
             if is_json_clean(json_data) is True:  
-                raw_bucket.copy_blob(blob, data_lake_bucket)
+                raw_bucket.copy_blob(blob, lake_bucket)
         except Exception as error:  # find more specific exceptions
             log_message = Template('Invalid JSON string from raw ingest: $message.')
-            logging.error(log_message.safe_substitute(message=error))        
+            logging.error(log_message.safe_substitute(message=error))       
+
+    print("End of bucket #2.") 
 
 def help_warehouse(list_blobs, client, topic):
+    """
+    -----------------------------------------------------------------------
+    Helper function for the rsu_data_warehouse_bucket() function which
+    publishes data as a byte string to the Pub/Sub topic.
+
+    Parameter: client --> object referencing GCP Pub/Sub Client
+    -----------------------------------------------------------------------
+    """
     for blob in list_blobs:
-        print("we have a blob")
         data_string = blob.download_as_string()                 # data MUST be a byte string
         future = client.publish(topic,data_string)       # when message is published, the client returns a "future"
         print(future.result())       
@@ -105,15 +115,17 @@ def rsu_data_warehouse_bucket(pub_client, storage_client, topic, bucket):
     Parameter: p_client --> object referencing GCP Publisher Client
     -----------------------------------------------------------------------
     """
+    print("Beginning of bucket #3.")
     lake_bucket = storage_client.get_bucket(bucket)
     lake_blobs = storage_client.list_blobs(lake_bucket)          # retrieving data lake bucket
-    print(len(lake_blobs))
     help_warehouse(lake_blobs, pub_client, topic)
 
     # logging publication message
     current_time = datetime.datetime.utcnow()    
     log_message = Template('Published message to the warehouse pub/sub topic at $time')
     logging.info(log_message.safe_substitute(time=current_time))
+
+    print("End of bucket #3.")
 
 def main(data, context):
     """
@@ -126,14 +138,15 @@ def main(data, context):
     -----------------------------------------------------------------------
     """
 
-    print("1. Loading Google App credentials.")
+    print("\nLoading Google App credentials.")
     # setting the Google Application Credentials to JSON with service account key
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = r"C:\Users\divav\Desktop\CDOT\gcp_test\CDOT CV ODE Dev-4d9416c81201.json"
 
-    json_file = 'gcp_test/RSU-ND.json'
-    print("2. Established bucket and pubsub client!")
+    json_file = 'RSU-ND.json'
+    print("Established relevant client(s)!\n")
 
-    topic_path = PublisherClient().topic_path('cdot-cv-ode-dev','rsu_data_warehouse')
+    topic_path = PublisherClient().topic_path('cdot-cv-ode-dev','transfer_pubsub')
+    raw_ingest_bucket = 'rsu_raw-ingest'
     data_lake_bucket = 'rsu_data-lake'
     
     try:
@@ -142,13 +155,10 @@ def main(data, context):
         logging.info(log_message.safe_substitute(time=current_time))
 
         try:
-            print("3. Begin filling buckets . . .")
+            print("Begin filling buckets . . .")
             rsu_raw_bucket(Client(), "json_obj1", json_file, 'rsu_raw-ingest')
-            print("4. Filled bucket #1: RAW INGEST.")
-            #rsu_data_lake_bucket(bucket_client)
-            #print("5. Filled bucket #2: DATA LAKE.")
-            rsu_data_warehouse_bucket(Client(), PublisherClient(), topic_path, data_lake_bucket)
-            print("6. Filled bucket #3: DATA WAREHOUSE.")
+            rsu_data_lake_bucket(Client(), raw_ingest_bucket, data_lake_bucket)
+            rsu_data_warehouse_bucket(PublisherClient(), Client(), topic_path, data_lake_bucket)
         
         except Exception as error:
             log_message = Template('Data transfer failed due to $message.')
@@ -158,6 +168,5 @@ def main(data, context):
         log_message = Template('$error').substitute(error=error)
         logging.error(log_message)
     
-
 if __name__ == '__main__':
     main('data', 'context')
