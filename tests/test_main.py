@@ -83,11 +83,3 @@ def test_main():
     
     print("test main (from main.py): complete!")
     
-def main():
-    test_rsu_raw_bucket()
-    test_rsu_data_lake_bucket()
-    test_rsu_data_warehouse_bucket()
-    test_help_warehouse()
-
-if __name__ == '__main__':
-    main()
