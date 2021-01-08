@@ -23,7 +23,7 @@ def test_rsu_raw_bucket(client):
     raw_bucket = client().get_bucket
     file_name = 'json_test1'
     file_path = 'gcp_test/RSU-ND.json'
-    rsu_raw_bucket(client(), file_name,file_path,'rsu_raw-ingest')
+    main.rsu_raw_bucket(client(), file_name,file_path,'rsu_raw-ingest')
     
     blob = raw_bucket().blob
     blob.assert_called_with(file_name)
@@ -40,7 +40,7 @@ def test_rsu_data_lake_bucket(client):
     raw_bucketOBJ = client().get_bucket(raw_bucket)
     data_lake_bucket = 'rsu_data-lake-bucket'
 
-    rsu_data_lake_bucket(client(), raw_bucket, data_lake_bucket)
+    main.rsu_data_lake_bucket(client(), raw_bucket, data_lake_bucket)
 
     client().list_blobs.assert_called_with(raw_bucketOBJ)
     print("test data lake: complete!")
@@ -56,7 +56,7 @@ def test_rsu_data_warehouse_bucket(client, publish_client):
     lake_bucketOBJ = client().get_bucket(data_lake_bucket)
 
     topic_path = publish_client().topic_path('cdot-cv-ode-dev','rsu_data_warehouse')
-    rsu_data_warehouse_bucket(publish_client(), client(), topic_path, data_lake_bucket)
+    main.rsu_data_warehouse_bucket(publish_client(), client(), topic_path, data_lake_bucket)
 
     client().list_blobs.assert_called_with(lake_bucketOBJ)
     print("test raw ingest: complete!")
@@ -73,7 +73,7 @@ def test_help_warehouse(client, publish_client):
 
     topic_path = publish_client().topic_path('cdot-cv-ode-dev','rsu_data_warehouse')
 
-    help_warehouse([lake_blob], publish_client(),topic_path)
+    main.help_warehouse([lake_blob], publish_client(),topic_path)
     publish_client().publish.assert_called_with(topic_path, client().get_bucket().blob().download_as_string())
     print("test help-warehouse: complete!")
     assert True
