@@ -6,12 +6,7 @@ import os
 import pytest
 from google.cloud.storage import Client
 from google.cloud.pubsub_v1 import PublisherClient
-from main import rsu_raw_bucket
-from main import rsu_data_warehouse_bucket
-from main import rsu_data_lake_bucket
-from main import help_warehouse
-from main import is_json_clean
-from main import main
+
 
 """
 This script handles the unit testing for main.py.
@@ -94,12 +89,5 @@ def test_main():
 
     print("test main (from main.py): complete!")
     assert True
-
-test_is_json_clean()
-test_rsu_raw_bucket()
-test_rsu_data_lake_bucket()
-test_rsu_data_warehouse_bucket()
-test_help_warehouse()
-test_main()
 
 
