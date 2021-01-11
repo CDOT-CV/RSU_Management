@@ -35,11 +35,23 @@ def is_json_clean(rsu_data):
     -----------------------------------------------------------------------
     Returns TRUE if json_file is clean. FALSE otherwise.
 
-    Parameter: rsu_data --> RSU data as a list from raw ingest to be checked
+    Param: rsu_data --> RSU data as a list of dicts from raw ingest to be checked
     -----------------------------------------------------------------------
     """
     # checking duplicate values in the RSU list
+    print(type(rsu_data))
+    print(type(rsu_data[0]))
+    print(rsu_data[14:16])
     
+    """
+    seen = set()
+    new_rsu_data = []
+    for d in rsu_data:
+        t = tuple(d.items())
+        if t not in seen:
+            seen.add(t)
+            new_rsu_data.append(d)
+    """
     return True
 
 def rsu_raw_bucket(client, filename, filepath, bucket_name):
@@ -48,7 +60,7 @@ def rsu_raw_bucket(client, filename, filepath, bucket_name):
     Executes the transfer of raw data from the roadside unit to the 
     rsu_raw-ingest bucket in the GCP which stores raw, unclean data.
 
-    Parameter: client --> object referencing GCP Storage/Bucket Client
+    Param: client --> object referencing GCP Storage/Bucket Client
     -----------------------------------------------------------------------
     """
     print("Beginning of bucket #1.")
@@ -69,7 +81,7 @@ def rsu_data_lake_bucket(client, r_bucket, l_bucket):
     Executes the transfer of raw data from the rsu_raw-ingest bucket
     to the data lake bucket in the GCP to be cleaned/filtered/aggregated/etc.
 
-    Parameter: client --> object referencing GCP Storage/Bucket Client
+    Param: client --> object referencing GCP Storage/Bucket Client
     -----------------------------------------------------------------------
     """
     print("Beginning of bucket #2.")
@@ -97,7 +109,7 @@ def help_warehouse(list_blobs, client, topic):
     Helper function for the rsu_data_warehouse_bucket() function which
     publishes data as a byte string to the Pub/Sub topic.
 
-    Parameter: client --> object referencing GCP Pub/Sub Client
+    Param: client --> object referencing GCP Pub/Sub Client
     -----------------------------------------------------------------------
     """
     for blob in list_blobs:
@@ -111,8 +123,8 @@ def rsu_data_warehouse_bucket(pub_client, storage_client, topic, bucket):
     Will push data from the data lake to the designated Pub/Sub topic which
     will serve as a form of short-term data warehouse.
 
-    Parameter: b_client --> object referencing GCP Storage/Bucket Client
-    Parameter: p_client --> object referencing GCP Publisher Client
+    Param: b_client --> object referencing GCP Storage/Bucket Client
+    Param: p_client --> object referencing GCP Publisher Client
     -----------------------------------------------------------------------
     """
     print("Beginning of bucket #3.")
@@ -133,17 +145,16 @@ def main(data, context):
     Main function.
     Triggered from a message on a Cloud Pub/Sub topic.
 
-    Parameter - data: (dict) Event payload.
-    Parameter - context: (google.cloud.functions.Context) Event metadata.
+    Param - data: (dict) Event payload.
+    Param - context: (google.cloud.functions.Context) Event metadata.
     -----------------------------------------------------------------------
     """
 
-    print("\nLoading Google App credentials.")
     # setting the Google Application Credentials to JSON with service account key
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = r"C:\Users\divav\Desktop\CDOT\gcp_test\CDOT CV ODE Dev-4d9416c81201.json"
+    print("\nLoaded Google App credentials.")
 
     json_file = 'RSU-ND.json'
-    print("Established relevant client(s)!\n")
 
     topic_path = PublisherClient().topic_path('cdot-cv-ode-dev','transfer_pubsub')
     raw_ingest_bucket = 'rsu_raw-ingest'
@@ -158,7 +169,7 @@ def main(data, context):
             print("Begin filling buckets . . .")
             rsu_raw_bucket(Client(), "json_obj1", json_file, 'rsu_raw-ingest')
             rsu_data_lake_bucket(Client(), raw_ingest_bucket, data_lake_bucket)
-            rsu_data_warehouse_bucket(PublisherClient(), Client(), topic_path, data_lake_bucket)
+            #rsu_data_warehouse_bucket(PublisherClient(), Client(), topic_path, data_lake_bucket)
         
         except Exception as error:
             log_message = Template('Data transfer failed due to $message.')
