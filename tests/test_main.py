@@ -41,8 +41,8 @@ def test_rsu_data_lake_bucket(client):
 
     raw_bucket = 'rsu_raw-ingest'
     raw_bucketOBJ = client().get_bucket(raw_bucket)
-    main.data_lake_bucket = 'rsu_data-lake-bucket'
-    rsu_data_lake_bucket(client(), raw_bucket, data_lake_bucket)
+    data_lake_bucket = 'rsu_data-lake-bucket'
+    main.rsu_data_lake_bucket(client(), raw_bucket, data_lake_bucket)
     client().list_blobs.assert_called_with(raw_bucketOBJ)
 
     print("test data lake: complete!")
