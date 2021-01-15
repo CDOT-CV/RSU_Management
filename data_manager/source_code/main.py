@@ -14,7 +14,7 @@ import ndjson
 import requests
 import os
 import pytest
-from collections import defaultdict
+from collections import Counter
 from google.cloud import bigquery   # google cloud - bigquery / dataset-table access
 from google.cloud.storage import Client    # google cloud - storage / bucket access
 from google.cloud.pubsub_v1 import PublisherClient  # google cloud - pub/sub topic access
@@ -38,21 +38,29 @@ def is_json_clean(rsu_data):
     Param: rsu_data --> RSU data as a list of dicts from raw ingest to be checked
     -----------------------------------------------------------------------
     """
-    # checking duplicate values in the RSU list
-    print(type(rsu_data))
-    print(type(rsu_data[0]))
-    print(rsu_data[14:16])
+    check = True
     
-    """
-    seen = set()
-    new_rsu_data = []
+    # check 1: duplicate records
+    check1 = True
+    unique = []
     for d in rsu_data:
-        t = tuple(d.items())
-        if t not in seen:
-            seen.add(t)
-            new_rsu_data.append(d)
-    """
-    return True
+        if d not in unique:
+            unique.append(d)
+    if len(unique) != len(rsu_data):
+        check1 = False
+    
+    # check 2: empty records based on timeReceived key
+    check2 = True
+    for d in rsu_data:
+        if len(d["timeReceived"]) == 0:
+            check2 = False
+            break
+    
+    # have any checks failed?
+    if (check1 == False) or (check2 == False):
+        check = False
+
+    return check
 
 def rsu_raw_bucket(client, filename, filepath, bucket_name):
     """
@@ -63,7 +71,6 @@ def rsu_raw_bucket(client, filename, filepath, bucket_name):
     Param: client --> object referencing GCP Storage/Bucket Client
     -----------------------------------------------------------------------
     """
-    print("Beginning of bucket #1.")
     raw_bucket = client.get_bucket(bucket_name)
     raw_blob = raw_bucket.blob(filename)
     raw_blob.upload_from_filename(filename=filepath)
@@ -72,8 +79,6 @@ def rsu_raw_bucket(client, filename, filepath, bucket_name):
     current_time = datetime.datetime.utcnow()                   
     log_message = Template('Raw ingest updated with new file at $time')
     logging.info(log_message.safe_substitute(time=current_time))
-    
-    print("End of bucket #1.")
 
 def rsu_data_lake_bucket(client, r_bucket, l_bucket):
     """
@@ -84,24 +89,19 @@ def rsu_data_lake_bucket(client, r_bucket, l_bucket):
     Param: client --> object referencing GCP Storage/Bucket Client
     -----------------------------------------------------------------------
     """
-    print("Beginning of bucket #2.")
     raw_bucket = client.get_bucket(r_bucket)            # source bucket
     lake_bucket = client.get_bucket(l_bucket)           # destination bucket
     
     raw_blobs = client.list_blobs(raw_bucket)
     for blob in raw_blobs:                                      # copying each RSU raw data file to the data lake
         data_string = blob.download_as_string()                 # data pulled as a BYTE string
-        # check if JSON string is valid
-        try:                                                    
+        try:                                                    # check if JSON string is valid
             json_data = ndjson.loads(data_string)
-            # IF DATA IS CLEAN: copy the blob to the data lake
-            if is_json_clean(json_data) is True:  
+            if is_json_clean(json_data) is True:                # IF DATA IS CLEAN: copy the blob to the data lake
                 raw_bucket.copy_blob(blob, lake_bucket)
         except Exception as error:  # find more specific exceptions
             log_message = Template('Invalid JSON string from raw ingest: $message.')
             logging.error(log_message.safe_substitute(message=error))       
-
-    print("End of bucket #2.") 
 
 def help_warehouse(list_blobs, client, topic):
     """
@@ -127,7 +127,6 @@ def rsu_data_warehouse_bucket(pub_client, storage_client, topic, bucket):
     Param: p_client --> object referencing GCP Publisher Client
     -----------------------------------------------------------------------
     """
-    print("Beginning of bucket #3.")
     lake_bucket = storage_client.get_bucket(bucket)
     lake_blobs = storage_client.list_blobs(lake_bucket)          # retrieving data lake bucket
     help_warehouse(lake_blobs, pub_client, topic)
@@ -136,8 +135,6 @@ def rsu_data_warehouse_bucket(pub_client, storage_client, topic, bucket):
     current_time = datetime.datetime.utcnow()    
     log_message = Template('Published message to the warehouse pub/sub topic at $time')
     logging.info(log_message.safe_substitute(time=current_time))
-
-    print("End of bucket #3.")
 
 def main(data, context):
     """
@@ -151,13 +148,11 @@ def main(data, context):
     """
 
     # setting the Google Application Credentials to JSON with service account key
-    # os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = r"C:\Users\divav\Desktop\CDOT\gcp_test\CDOT CV ODE Dev-4d9416c81201.json"
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "sample_creds.json"
-    print("\nLoaded Google App credentials.")
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = r"C:\Users\divav\Desktop\CDOT\gcp_test\CDOT CV ODE Dev-4d9416c81201.json"
 
-    json_file = 'RSU-ND.json'
+    json_file = 'RSU-ND-clean.json'
 
-    topic_path = PublisherClient().topic_path('cdot-cv-ode-dev','transfer_pubsub')
+    topic_path = PublisherClient().topic_path('cdot-cv-ode-dev','rsu_data_warehouse')
     raw_ingest_bucket = 'rsu_raw-ingest'
     data_lake_bucket = 'rsu_data-lake'
     
@@ -167,8 +162,7 @@ def main(data, context):
         logging.info(log_message.safe_substitute(time=current_time))
 
         try:
-            print("Begin filling buckets . . .")
-            rsu_raw_bucket(Client(), "json_obj1", json_file, 'rsu_raw-ingest')
+            rsu_raw_bucket(Client(), "clean", json_file, 'rsu_raw-ingest')
             rsu_data_lake_bucket(Client(), raw_ingest_bucket, data_lake_bucket)
             #rsu_data_warehouse_bucket(PublisherClient(), Client(), topic_path, data_lake_bucket)
         
@@ -179,6 +173,6 @@ def main(data, context):
     except Exception as error:
         log_message = Template('$error').substitute(error=error)
         logging.error(log_message)
-    
+
 if __name__ == '__main__':
     main('data', 'context')
