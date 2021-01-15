@@ -152,7 +152,7 @@ def main(data, context):
 
     json_file = 'RSU-ND-clean.json'
 
-    topic_path = PublisherClient().topic_path('cdot-cv-ode-dev','rsu_data_warehouse')
+    # topic_path = PublisherClient().topic_path('cdot-cv-ode-dev','rsu_data_warehouse')
     raw_ingest_bucket = 'rsu_raw-ingest'
     data_lake_bucket = 'rsu_data-lake'
     
