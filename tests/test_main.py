@@ -1,6 +1,6 @@
 import sys
 sys.path.append("..")
-#from data_manager.source_code import main
+from data_manager.source_code import main
 import mock
 import os
 import pytest
