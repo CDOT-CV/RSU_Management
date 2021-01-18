@@ -88,7 +88,7 @@ def test_main():
     
     data = 'data'
     context = 'context'
-    main(data, context)
+    main.main(data, context)
 
     print("test main (from main.py): complete!")
     assert True
