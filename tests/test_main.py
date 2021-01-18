@@ -81,7 +81,7 @@ def test_help_warehouse(client, publish_client):
     print("test help-warehouse: complete!")
     assert True
 
-"""
+
 def test_main():
 
     print("test main (from main.py): begin")
@@ -92,6 +92,6 @@ def test_main():
 
     print("test main (from main.py): complete!")
     assert True
-"""
+
 
 
