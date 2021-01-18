@@ -40,7 +40,7 @@ def is_json_clean(rsu_data):
     """
     check = True
     
-    # check 1: duplicate records
+    #check 1: duplicate records
     check1 = True
     unique = []
     for d in rsu_data:
@@ -52,7 +52,7 @@ def is_json_clean(rsu_data):
     print(len(unique))
     print(len(rsu_data))
     
-    # check 2: empty records based on timeReceived key
+    #check 2: empty records based on timeReceived key
     check2 = True
     for d in rsu_data:
         if len(d["timeReceived"]) == 0:
@@ -88,26 +88,6 @@ def rsu_raw_bucket(client, filename, filepath, bucket_name):
     
     print("End of bucket #1.")
 
-"""
-def help_data_lake(list_blobs, r_bucket, l_bucket):
-   
-    -----------------------------------------------------------------------
-    Helper function for the rsu_data_lake_bucket() function which
-    filters clean data from the raw ingest to send to the data lake.
-
-    Param: client --> object referencing GCP Storage Client
-    -----------------------------------------------------------------------
-    
-
-    for blob in list_blobs:                                      # copying each RSU raw data file to the data lake
-        data_string = blob.download_as_string()                  # data pulled as a BYTE string
-        json_data = ndjson.loads(data_string)
-        if is_json_clean(json_data) is True:                # IF DATA IS CLEAN: copy the blob to the data lake
-            r_bucket.copy_blob(blob, l_bucket)
-            current_time = datetime.datetime.utcnow()    
-            log_message = Template('Published message to the data lake bucket at $time')
-            logging.info(log_message.safe_substitute(time=current_time))
-""" 
 
 def rsu_data_lake_bucket(client, r_bucket, l_bucket):
     """
