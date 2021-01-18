@@ -10,6 +10,7 @@ import pytest
 from google.cloud.storage import Client
 from google.cloud.pubsub_v1 import PublisherClient
 
+
 """
 This script handles the unit testing for main.py.
 """
@@ -49,6 +50,22 @@ def test_rsu_data_lake_bucket(client):
     print("test data lake: complete!")
     assert True
 
+@mock.patch("google.cloud.storage.Client")
+def test_help_data_lake(client):
+    
+    print("test help-data lake: begin.")
+
+    raw_bucket = 'rsu_raw-ingest'
+    raw_bucketOBJ = client().get_bucket(raw_bucket)
+    raw_blob = raw_bucketOBJ.blob("test")
+    raw_blob.upload_from_string('{"column":1, "status":"yes"}')
+    data_lake = 'rsu_data-lake'
+    data_lakeOBJ = client().get_bucket(data_lake)
+    main.help_data_lake([raw_blob], raw_bucketOBJ, data_lakeOBJ)
+    
+    print("test help-data lake: complete!")
+    assert True
+
 @mock.patch("google.cloud.pubsub_v1.PublisherClient")
 @mock.patch("google.cloud.storage.Client")
 def test_rsu_data_warehouse_bucket(client, publish_client):
@@ -81,7 +98,6 @@ def test_help_warehouse(client, publish_client):
     print("test help-warehouse: complete!")
     assert True
 
-
 def test_main():
 
     print("test main (from main.py): begin")
@@ -92,6 +108,5 @@ def test_main():
 
     print("test main (from main.py): complete!")
     assert True
-
 
 

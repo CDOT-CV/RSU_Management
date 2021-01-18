@@ -88,6 +88,22 @@ def rsu_raw_bucket(client, filename, filepath, bucket_name):
     
     print("End of bucket #1.")
 
+def help_data_lake(list_blobs, raw_bucket, lake_bucket):
+    """
+    -----------------------------------------------------------------------
+    Helper function for the rsu_data_lake_bucket() function which
+    publishes data as a byte string to the Pub/Sub topic.
+
+    Param: client --> object referencing GCP Pub/Sub Client
+    Param: list_blobs --> the data to be stored in Pub/Sub
+    Param: topic --> the Pub/Sub topic designated as the data warehouse
+    -----------------------------------------------------------------------
+    """
+    for blob in list_blobs:                                     # copying each RSU raw data file to the data lake
+        data_string = blob.download_as_string()                 # data pulled as a BYTE string
+        json_data = ndjson.loads(data_string)
+        if is_json_clean(json_data) is True:                    # IF DATA IS CLEAN: copy the blob to the data lake
+            raw_bucket.copy_blob(blob, lake_bucket)
 
 def rsu_data_lake_bucket(client, r_bucket, l_bucket):
     """
@@ -103,17 +119,12 @@ def rsu_data_lake_bucket(client, r_bucket, l_bucket):
     raw_bucket = client.get_bucket(r_bucket)            # source bucket
     lake_bucket = client.get_bucket(l_bucket)           # destination bucket
     raw_blobs = client.list_blobs(raw_bucket)
+    help_data_lake(raw_blobs, raw_bucket, lake_bucket)
     
-    for blob in raw_blobs:                                      # copying each RSU raw data file to the data lake
-        data_string = blob.download_as_string()                 # data pulled as a BYTE string
-        json_data = ndjson.loads(data_string)
-        if is_json_clean(json_data) is True:                # IF DATA IS CLEAN: copy the blob to the data lake
-            raw_bucket.copy_blob(blob, lake_bucket)
-            # logging data push to the lake
-            current_time = datetime.datetime.utcnow()    
-            log_message = Template('Pushed data to the lake at $time')
-            logging.info(log_message.safe_substitute(time=current_time)) 
-    
+    # logging data push to the lake
+    current_time = datetime.datetime.utcnow()    
+    log_message = Template('Pushed data to the lake at $time')
+    logging.info(log_message.safe_substitute(time=current_time))
     print("End of bucket #2.") 
 
 def help_warehouse(list_blobs, client, topic):
@@ -166,7 +177,7 @@ def main(data, context):
     """
 
     # setting the Google Application Credentials to JSON with service account key
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "CDOT CV ODE Dev-4d9416c81201.json"
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = r"C:\Users\divav\Desktop\CDOT\gcp_test\CDOT CV ODE Dev-4d9416c81201.json"
     print("\nLoaded Google App credentials.")
 
     json_file = 'RSU-ND-clean.json'
