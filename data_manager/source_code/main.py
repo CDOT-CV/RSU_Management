@@ -48,6 +48,9 @@ def is_json_clean(rsu_data):
             unique.append(d)
     if len(unique) != len(rsu_data):
         check1 = False
+    print("\nCheck 1 is: ", check1)
+    print(len(unique))
+    print(len(rsu_data))
     
     # check 2: empty records based on timeReceived key
     check2 = True
@@ -55,10 +58,12 @@ def is_json_clean(rsu_data):
         if len(d["timeReceived"]) == 0:
             check2 = False
             break
+    print("\nCheck 2 is : ", check2)
     
     # have any checks failed?
     if (check1 == False) or (check2 == False):
         check = False
+    print("\nCheck is: ", check, "\n--------------------------------")
 
     return check
 
@@ -71,6 +76,7 @@ def rsu_raw_bucket(client, filename, filepath, bucket_name):
     Param: client --> object referencing GCP Storage/Bucket Client
     -----------------------------------------------------------------------
     """
+    print("Beginning of bucket #1.")
     raw_bucket = client.get_bucket(bucket_name)
     raw_blob = raw_bucket.blob(filename)
     raw_blob.upload_from_filename(filename=filepath)
@@ -79,6 +85,29 @@ def rsu_raw_bucket(client, filename, filepath, bucket_name):
     current_time = datetime.datetime.utcnow()                   
     log_message = Template('Raw ingest updated with new file at $time')
     logging.info(log_message.safe_substitute(time=current_time))
+    
+    print("End of bucket #1.")
+
+"""
+def help_data_lake(list_blobs, r_bucket, l_bucket):
+   
+    -----------------------------------------------------------------------
+    Helper function for the rsu_data_lake_bucket() function which
+    filters clean data from the raw ingest to send to the data lake.
+
+    Param: client --> object referencing GCP Storage Client
+    -----------------------------------------------------------------------
+    
+
+    for blob in list_blobs:                                      # copying each RSU raw data file to the data lake
+        data_string = blob.download_as_string()                  # data pulled as a BYTE string
+        json_data = ndjson.loads(data_string)
+        if is_json_clean(json_data) is True:                # IF DATA IS CLEAN: copy the blob to the data lake
+            r_bucket.copy_blob(blob, l_bucket)
+            current_time = datetime.datetime.utcnow()    
+            log_message = Template('Published message to the data lake bucket at $time')
+            logging.info(log_message.safe_substitute(time=current_time))
+""" 
 
 def rsu_data_lake_bucket(client, r_bucket, l_bucket):
     """
@@ -89,19 +118,23 @@ def rsu_data_lake_bucket(client, r_bucket, l_bucket):
     Param: client --> object referencing GCP Storage/Bucket Client
     -----------------------------------------------------------------------
     """
+    print("Beginning of bucket #2.")
+    
     raw_bucket = client.get_bucket(r_bucket)            # source bucket
     lake_bucket = client.get_bucket(l_bucket)           # destination bucket
-    
     raw_blobs = client.list_blobs(raw_bucket)
+    
     for blob in raw_blobs:                                      # copying each RSU raw data file to the data lake
         data_string = blob.download_as_string()                 # data pulled as a BYTE string
-        try:                                                    # check if JSON string is valid
-            json_data = ndjson.loads(data_string)
-            if is_json_clean(json_data) is True:                # IF DATA IS CLEAN: copy the blob to the data lake
-                raw_bucket.copy_blob(blob, lake_bucket)
-        except Exception as error:  # find more specific exceptions
-            log_message = Template('Invalid JSON string from raw ingest: $message.')
-            logging.error(log_message.safe_substitute(message=error))       
+        json_data = ndjson.loads(data_string)
+        if is_json_clean(json_data) is True:                # IF DATA IS CLEAN: copy the blob to the data lake
+            raw_bucket.copy_blob(blob, lake_bucket)
+            # logging data push to the lake
+            current_time = datetime.datetime.utcnow()    
+            log_message = Template('Pushed data to the lake at $time')
+            logging.info(log_message.safe_substitute(time=current_time)) 
+    
+    print("End of bucket #2.") 
 
 def help_warehouse(list_blobs, client, topic):
     """
@@ -110,6 +143,8 @@ def help_warehouse(list_blobs, client, topic):
     publishes data as a byte string to the Pub/Sub topic.
 
     Param: client --> object referencing GCP Pub/Sub Client
+    Param: list_blobs --> the data to be stored in Pub/Sub
+    Param: topic --> the Pub/Sub topic designated as the data warehouse
     -----------------------------------------------------------------------
     """
     for blob in list_blobs:
@@ -127,6 +162,7 @@ def rsu_data_warehouse_bucket(pub_client, storage_client, topic, bucket):
     Param: p_client --> object referencing GCP Publisher Client
     -----------------------------------------------------------------------
     """
+    print("Beginning of bucket #3.")
     lake_bucket = storage_client.get_bucket(bucket)
     lake_blobs = storage_client.list_blobs(lake_bucket)          # retrieving data lake bucket
     help_warehouse(lake_blobs, pub_client, topic)
@@ -135,6 +171,8 @@ def rsu_data_warehouse_bucket(pub_client, storage_client, topic, bucket):
     current_time = datetime.datetime.utcnow()    
     log_message = Template('Published message to the warehouse pub/sub topic at $time')
     logging.info(log_message.safe_substitute(time=current_time))
+
+    print("End of bucket #3.")
 
 def main(data, context):
     """
@@ -149,10 +187,11 @@ def main(data, context):
 
     # setting the Google Application Credentials to JSON with service account key
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = r"C:\Users\divav\Desktop\CDOT\gcp_test\CDOT CV ODE Dev-4d9416c81201.json"
+    print("\nLoaded Google App credentials.")
 
     json_file = 'RSU-ND-clean.json'
 
-    # topic_path = PublisherClient().topic_path('cdot-cv-ode-dev','rsu_data_warehouse')
+    #topic_path = PublisherClient().topic_path('cdot-cv-ode-dev','rsu_data_warehouse')
     raw_ingest_bucket = 'rsu_raw-ingest'
     data_lake_bucket = 'rsu_data-lake'
     
@@ -162,6 +201,7 @@ def main(data, context):
         logging.info(log_message.safe_substitute(time=current_time))
 
         try:
+            print("Begin filling buckets . . .")
             rsu_raw_bucket(Client(), "clean", json_file, 'rsu_raw-ingest')
             rsu_data_lake_bucket(Client(), raw_ingest_bucket, data_lake_bucket)
             #rsu_data_warehouse_bucket(PublisherClient(), Client(), topic_path, data_lake_bucket)

@@ -2,6 +2,9 @@ import sys
 sys.path.append("..")
 from data_manager.source_code import main
 import mock
+from unittest.mock import patch
+from unittest import TestCase
+import ndjson
 import os
 import pytest
 from google.cloud.storage import Client
@@ -25,7 +28,6 @@ def test_rsu_raw_bucket(client):
     file_name = 'json_test1'
     file_path = 'gcp_test/RSU-ND.json'
     main.rsu_raw_bucket(client(), file_name,file_path,'rsu_raw-ingest')
-
     blob = raw_bucket().blob
     blob.assert_called_with(file_name)
     blob().upload_from_filename.assert_called_with(filename=file_path)
@@ -37,7 +39,7 @@ def test_rsu_raw_bucket(client):
 def test_rsu_data_lake_bucket(client):
     
     print("test data lake: begin.")
-
+    
     raw_bucket = 'rsu_raw-ingest'
     raw_bucketOBJ = client().get_bucket(raw_bucket)
     data_lake_bucket = 'rsu_data-lake-bucket'
@@ -70,7 +72,7 @@ def test_help_warehouse(client, publish_client):
     
     data_lake_bucket = 'rsu_data-lake-bucket'
     lake_bucketOBJ = client().get_bucket(data_lake_bucket)
-    lake_blob = lake_bucketOBJ.blob("test1")
+    lake_blob = lake_bucketOBJ.blob("test")
     lake_blob.upload_from_string('{"column":1, "status":"yes"}')
     topic_path = publish_client().topic_path('cdot-cv-ode-dev','rsu_data_warehouse')
     main.help_warehouse([lake_blob], publish_client(),topic_path)
@@ -81,11 +83,12 @@ def test_help_warehouse(client, publish_client):
 
 """
 def test_main():
+
     print("test main (from main.py): begin")
     
     data = 'data'
     context = 'context'
-    main.main(data, context)
+    main(data, context)
 
     print("test main (from main.py): complete!")
     assert True
