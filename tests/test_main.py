@@ -89,9 +89,7 @@ def test_help_warehouse(client, publish_client):
     
     assert True
 
-@mock.patch("google.cloud.pubsub_v1.PublisherClient")
-@mock.patch("google.cloud.storage.Client")
-def test_main(client, publish_client):
+def test_main():
 
     data = 'data'
     context = 'context'
