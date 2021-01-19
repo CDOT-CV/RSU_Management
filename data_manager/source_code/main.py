@@ -15,9 +15,10 @@ import requests
 import os
 import pytest
 from collections import Counter
-from google.cloud import bigquery   # google cloud - bigquery / dataset-table access
-from google.cloud.storage import Client    # google cloud - storage / bucket access
+from google.cloud import bigquery                   # google cloud - bigquery / dataset-table access
+from google.cloud.storage import Client             # google cloud - storage / bucket access
 from google.cloud.pubsub_v1 import PublisherClient  # google cloud - pub/sub topic access
+from google.oauth2 import service_account           # for pub/sub credential scoping 
 # below: for data cleaning
 import pandas as pd
 import numpy as np
@@ -194,7 +195,7 @@ def main(data, context):
             print("Begin filling buckets . . .")
             rsu_raw_bucket(Client(), "clean", json_file, 'rsu_raw-ingest')
             rsu_data_lake_bucket(Client(), raw_ingest_bucket, data_lake_bucket)
-	    topic_path = PublisherClient().topic_path('cdot-cv-ode-dev','rsu_data_warehouse')
+            topic_path = PublisherClient().topic_path('cdot-cv-ode-dev','rsu_data_warehouse')
             rsu_data_warehouse_bucket(PublisherClient(), Client(), topic_path, data_lake_bucket)
         
         except Exception as error:
