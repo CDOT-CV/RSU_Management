@@ -182,7 +182,7 @@ def main(data, context):
 
     json_file = 'RSU-ND-clean.json'
 
-    #topic_path = PublisherClient().topic_path('cdot-cv-ode-dev','rsu_data_warehouse')
+    topic_path = PublisherClient().topic_path('cdot-cv-ode-dev','rsu_data_warehouse')
     raw_ingest_bucket = 'rsu_raw-ingest'
     data_lake_bucket = 'rsu_data-lake'
     
@@ -195,7 +195,7 @@ def main(data, context):
             print("Begin filling buckets . . .")
             rsu_raw_bucket(Client(), "clean", json_file, 'rsu_raw-ingest')
             rsu_data_lake_bucket(Client(), raw_ingest_bucket, data_lake_bucket)
-            #rsu_data_warehouse_bucket(PublisherClient(), Client(), topic_path, data_lake_bucket)
+            rsu_data_warehouse_bucket(PublisherClient(), Client(), topic_path, data_lake_bucket)
         
         except Exception as error:
             log_message = Template('Data transfer failed due to $message.')
