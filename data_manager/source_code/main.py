@@ -177,7 +177,7 @@ def main(data, context):
     """
 
     # setting the Google Application Credentials to JSON with service account key
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = r"C:\Users\divav\Desktop\CDOT\gcp_test\CDOT CV ODE Dev-4d9416c81201.json"
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "CDOT CV ODE Dev-4d9416c81201.json"
     print("\nLoaded Google App credentials.")
 
     json_file = 'RSU-ND-clean.json'
