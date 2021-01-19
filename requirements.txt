@@ -1,6 +1,7 @@
 google-cloud-bigquery
 google-cloud-storage
 google-cloud-pubsub
+google-oauth
 ndjson
 pytest
 pytest-cov
