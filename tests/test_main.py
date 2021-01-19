@@ -61,7 +61,7 @@ def test_help_data_lake(client):
     raw_blob.upload_from_string('{"column":1, "status":"yes"}')
     data_lake = 'rsu_data-lake'
     data_lakeOBJ = client().get_bucket(data_lake)
-    main.help_data_lake([raw_blob], raw_bucketOBJ, data_lakeOBJ)
+    main.help_data_lake(raw_blob, raw_bucketOBJ, data_lakeOBJ)
     
     print("test help-data lake: complete!")
     assert True
