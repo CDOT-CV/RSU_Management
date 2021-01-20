@@ -37,6 +37,15 @@ To run this code:
 python3 main.py
 ```
 
+## Testing
+
+The test for the main.py script is the test_main.py script, which can be found in the /tests directory. 
+
+To run the test script:
+
+```
+python -m pytest test_main.py
+```
 
 
 ## Contributors
