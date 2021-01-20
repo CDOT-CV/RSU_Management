@@ -14,7 +14,7 @@ The data_manager directory contains two sub-directories: sample_files and source
 ## Guidelines
 
 - Issues
-  - Create issues using the SMART goals outline (Specific, Measurable, Actionable, Realistic and Time-Aware)
+  - Create issues using the SMART goals outline (Specific, Measurable, Actionable, Realistic and Time-Aware).
 - PR (Pull Requests)
   - Create all pull requests from the master branch. 
   - Create small, narrowly focused pull requests.
