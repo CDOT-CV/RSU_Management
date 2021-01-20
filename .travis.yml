@@ -1,6 +1,11 @@
 language: python
 python:
   - "3.6"
+branches:
+  only:
+    - main
+    - dev
+    - CV-29
 addons:
   sonarcloud:
     organization: "cdot-cv"
