@@ -49,8 +49,8 @@ def is_json_clean(rsu_data):
     if len(unique) != len(rsu_data):
         check1 = False
         print("\nCheck failed: Duplicate records found.")
-    print("Number of unique records: ", len(unique))
-    print("Total records in RSU file: ", len(rsu_data))
+        print("Number of unique records: ", len(unique))
+        print("Total records in RSU file: ", len(rsu_data))
     
     #check 2: empty records based on timeReceived key
     check2 = True
