@@ -4,6 +4,7 @@ python:
 branches:
   only:
     - main
+    - dev
     - CV-29
 addons:
   sonarcloud:
