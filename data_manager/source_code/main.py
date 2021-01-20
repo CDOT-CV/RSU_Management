@@ -153,8 +153,9 @@ def rsu_data_warehouse_bucket(pub_client, storage_client, topic, bucket):
     Will push data from the data lake to the designated Pub/Sub topic which
     will serve as a form of short-term data warehouse.
 
-    Param: b_client --> object referencing GCP Storage/Bucket Client
-    Param: p_client --> object referencing GCP Publisher Client
+    Param: pub_client --> object referencing GCP Publisher Client
+    Param: storage_client --> object referencing GCP Storage/Bucket Client
+    Param: topic --> the name of the data warehouse Pub/Sub topic name
     -----------------------------------------------------------------------
     """
     print("Beginning of bucket #3.")
