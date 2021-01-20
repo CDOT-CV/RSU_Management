@@ -2,3 +2,6 @@ CDOT CV ODE Dev-4d9416c81201.json
 .coverage
 **/.idea/*
 .idea/*
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
