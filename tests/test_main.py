@@ -10,6 +10,7 @@ import pytest
 from google.cloud.storage import Client
 from google.cloud.pubsub_v1 import PublisherClient
 
+
 """
 This script handles the unit testing for main.py.
 """
@@ -96,4 +97,5 @@ def test_main():
     main.main(data, context)
 
     assert True
+
 
