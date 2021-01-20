@@ -66,6 +66,8 @@ pip install google-cloud-pubsub
 
 The test for the main.py script is the test_main.py script, which can be found in the /tests directory. 
 
+## Testing: How to Run
+
 To run the test script:
 
 ```
