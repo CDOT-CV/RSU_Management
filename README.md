@@ -54,7 +54,9 @@ To run this code:
 python3 main.py
 ```
 
-## Testing: Prerequisites and Set-Up
+## Testing
+
+### Prerequisites and Set-Up
 
 The following packages must be pip installed in order to run test_main.py (the unit tests):
 
@@ -68,7 +70,7 @@ pip install google-cloud-pubsub
 
 The test for the main.py script is the test_main.py script, which can be found in the /tests directory. 
 
-## Testing: How to Run
+### How to Run
 
 To run the test script:
 
