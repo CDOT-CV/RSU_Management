@@ -156,6 +156,7 @@ def rsu_data_warehouse_bucket(pub_client, storage_client, topic, bucket):
     Param: pub_client --> object referencing GCP Publisher Client
     Param: storage_client --> object referencing GCP Storage/Bucket Client
     Param: topic --> the name of the data warehouse Pub/Sub topic name
+    Param: bucket --> the name of the data lake GCS bucket
     -----------------------------------------------------------------------
     """
     print("Beginning of bucket #3.")
