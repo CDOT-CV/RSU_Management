@@ -48,17 +48,17 @@ def is_json_clean(rsu_data):
             unique.append(d)
     if len(unique) != len(rsu_data):
         check1 = False
-    print("\nCheck 1 is: ", check1)
-    print(len(unique))
-    print(len(rsu_data))
+        print("\nCheck failed: Duplicate records found.")
+    print("Number of unique records: ", len(unique))
+    print("Total records in RSU file: ", len(rsu_data))
     
     #check 2: empty records based on timeReceived key
     check2 = True
     for d in rsu_data:
         if len(d["timeReceived"]) == 0:
             check2 = False
+            print("\nCheck failed: One or more records is missing timestamp.")
             break
-    print("\nCheck 2 is : ", check2)
     
     # have any checks failed?
     if (check1 == False) or (check2 == False):
@@ -74,6 +74,9 @@ def rsu_raw_bucket(client, filename, filepath, bucket_name):
     rsu_raw-ingest bucket in the GCP which stores raw, unclean data.
 
     Param: client --> object referencing GCP Storage/Bucket Client
+    Param: filename --> the name of raw RSU file passed as JSON object
+    Param: filepath --> the location of the raw RSU file
+    Param: bucket_name --> the name of the raw ingest bucket in the GCS
     -----------------------------------------------------------------------
     """
     print("Beginning of bucket #1.")
@@ -92,7 +95,8 @@ def help_data_lake(list_blobs, raw_bucket, lake_bucket):
     """
     -----------------------------------------------------------------------
     Helper function for the rsu_data_lake_bucket() function which
-    publishes data as a byte string to the Pub/Sub topic.
+    takes in a list of blobs, checks if they are "json clean" and then
+    copies them to the provided lake_bucket.
 
     Param: client --> object referencing GCP Pub/Sub Client
     Param: list_blobs --> the data to be stored in Pub/Sub
