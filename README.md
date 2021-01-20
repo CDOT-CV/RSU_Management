@@ -1,5 +1,83 @@
-# RSU_Management
+
+# RSU Data Manager
 
 | Build       | Quality Gate     | Code Coverage     |
 | :------------- | :----------: | -----------: |
-|  [![Build Status](https://travis-ci.com/CDOT-CV/RSU_Management.svg?branch=main)](https://travis-ci.com/CDOT-CV/RSU_Management) | [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=CDOT-CV_RSU_Management&metric=alert_status)](https://sonarcloud.io/dashboard?id=CDOT-CV_RSU_Management)   | [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=CDOT-CV_RSU_Management&metric=coverage)](https://sonarcloud.io/dashboard?id=CDOT-CV_RSU_Management)    |
+|  [![Build Status](https://travis-ci.com/CDOT-CV/RSU_Management.svg?branch=CV-29)](https://travis-ci.com/CDOT-CV/RSU_Management) | [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?branch=dev&project=CDOT-CV_RSU_Management&metric=alert_status)](https://sonarcloud.io/dashboard?id=CDOT-CV_RSU_Management)   | [![Coverage](https://sonarcloud.io/api/project_badges/measure?branch=dev&project=CDOT-CV_RSU_Management&metric=coverage)](https://sonarcloud.io/dashboard?id=CDOT-CV_RSU_Management)    |
+
+## Project Description
+
+This project is an open-source, proof-of-concept for the roadside unit (RSU) data manager with the integration of Google Cloud Storage (GCS) functions. RSU data is assumed to take the form of JSON strings. The data will be passed through three "containers". First, all data will be placed in the raw ingest (a GCS bucket). From there, each data is checked for cleanliness: if the check passes, the clean data is placed in the data lake (another GCS bucket). From there, data is pushed as byte string messages to the short-term data warehouse (a Google Cloud Pub/Sub topic).
+
+The data_manager directory contains two sub-directories: sample_files and source_code. The former directory holds the sample_files used during the design, implementation and testing of this project. The RSU-ND.json file is an example of the type of JSON string retrieved from an RSU. The sample_creds.json file is an example format of the credentials issued by the Google Cloud Platform (GCP), which is passed into the main.py script and enables the user to access the GCP.
+
+## Guidelines
+
+- Issues
+  - Create issues using the SMART goals outline (Specific, Measurable, Actionable, Realistic and Time-Aware).
+- PR (Pull Requests)
+  - Create all pull requests from the master branch. 
+  - Create small, narrowly focused pull requests.
+  - Maintain a clean commit history so that they are easier to review.
+
+## Prerequisites and Set-Up
+
+### Environment Set-Up
+
+This project supports Python >= 3.5. Refer to the requirements.txt document to [pip](https://pip.pypa.io/en/stable/) install the necessary packages. The Google Cloud Storage Python packages, for example, would be installed using:
+
+```bash
+pip install google-cloud-bigquery
+pip install google-cloud-storage
+pip install google-cloud-pubsub
+```
+
+Alternatively, install all necessary packages using:
+
+```bash
+pip install -r .\requirements.txt
+```
+
+### Google Cloud Platform Set-Up
+
+In order to properly leverage the GCP's features, the user must verify that their GCP admin has granted the user's GCP Client both Storage and Pub/Sub Admin privileges. Additionally, it may be helpful to grant these privileges on a user account-basis.
+
+The user must also retrieve the JSON credentials for the service account used from their GCP administrator. The path to this JSON file will be assigned to the "GOOGLE_APPLICATION_CREDENTIALS" environment variable, as shown in the def main() function of the data_manager/source_code/main.py script.
+
+## How to Run
+
+The integration of RSUs into this script is yet to come. At present, the script (main.py) uses the RSU sample file 'RSU-ND-clean.json' (found in the data_manager/sample_files and referenced in the def main() function of the main.py script). This sample file accompanies the main.py script in data_manager/source_code. When running locally, ensure that main.py and the sample script are located in the same folder.
+ 
+To run this code:
+
+```
+python3 main.py
+```
+
+## Testing
+
+### Prerequisites and Set-Up
+
+The following packages must be pip installed in order to run test_main.py (the unit tests):
+
+```bash
+pip install mock
+pip install unittest
+pip install pytest
+pip install google-cloud-storage
+pip install google-cloud-pubsub
+```
+
+The test for the main.py script is the test_main.py script, which can be found in the /tests directory. 
+
+### How to Run
+
+To run the test script:
+
+```
+python -m pytest test_main.py
+```
+
+
+## Contributors
+For any questions, contact Dhivahari Vivek at dhivahari.vivekanandasarma@state.co.us.

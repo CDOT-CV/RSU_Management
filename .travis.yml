@@ -11,4 +11,7 @@ addons:
     organization: "cdot-cv"
     token: ${SONAR_TOKEN}
 script:
-  - sonar-scanner    
+  - coverage erase
+  - coverage run -m pytest 'tests/'
+  - coverage xml -i    
+  - sonar-scanner
