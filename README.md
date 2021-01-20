@@ -9,7 +9,10 @@
 
 This project is an open-source, proof-of-concept for the roadside unit (RSU) data manager with the integration of Google Cloud Storage (GCS) functions. RSU data is assumed to take the form of JSON strings. The data will be passed through three "containers". First, all data will be placed in the raw ingest (a GCS bucket). From there, each data is checked for cleanliness: if the check passes, the clean data is placed in the data lake (another GCS bucket). From there, data is pushed as byte string messages to the short-term data warehouse (a Google Cloud Pub/Sub topic).
 
+The data_manager directory contains two sub-directories: sample_files and source_code. The former directory holds the sample_files used during the design, implementation and testing of this project. The RSU-ND.json file is an example of the type of JSON string retrieved from an RSU. The sample_creds.json file is an example format of the credentials issued by the Google Cloud Platform (GCP), which is passed into the main.py script and enables the user to access the GCP.
+
 ## Guidelines
+
 - Issues
   - Create issues using the SMART goals outline (Specific, Measurable, Actionable, Realistic and Time-Aware)
 - PR (Pull Requests)
@@ -19,13 +22,25 @@ This project is an open-source, proof-of-concept for the roadside unit (RSU) dat
 
 ## Prerequisites and Set-Up
 
-This project supports Python >= 3.5. Refer to the requirements.txt document to [pip](https://pip.pypa.io/en/stable/) install the necessary packages. The Google Cloud Storage Python packages, for example, would be installed like so:
+### Environment Set-Up
+
+This project supports Python >= 3.5. Refer to the requirements.txt document to [pip](https://pip.pypa.io/en/stable/) install the necessary packages. The Google Cloud Storage Python packages, for example, would be installed using:
 
 ```bash
 pip install google-cloud-bigquery
 pip install google-cloud-storage
 pip install google-cloud-pubsub
 ```
+
+Alternatively, install all necessary packages using:
+
+```bash
+pip install -r .\requirements.txt
+```
+
+### Google Cloud Platform Set-Up
+
+In order to properly leverage the GCP's features, the user must verify that their GCP admin has granted the user's GCP Client both Storage and Pub/Sub Admin privileges. Additionally, it may be helpful to grant these privileges on a user account-basis.
 
 ## How to Run
 
@@ -37,7 +52,17 @@ To run this code:
 python3 main.py
 ```
 
-## Testing
+## Testing: Prerequisites and Set-Up
+
+The following packages must be pip installed in order to run test_main.py (the unit tests):
+
+```bash
+pip install mock
+pip install unittest
+pip install pytest
+pip install google-cloud-storage
+pip install google-cloud-pubsub
+```
 
 The test for the main.py script is the test_main.py script, which can be found in the /tests directory. 
 
