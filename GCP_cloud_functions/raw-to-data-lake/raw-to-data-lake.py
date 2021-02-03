@@ -55,7 +55,7 @@ def raw_to_data_lake(event, context):
     lake_bucket = client.get_bucket(config.config_vars['data_lake_id'])
 
     # retrieving the latest blob upload to the bucket
-    blob = client.get_bucket(event['bucket']).get_blob(event['name'])
+    blob = client.raw_bucket.get_blob(event['name'])
     data_string = blob.download_as_string()
     json_data = ndjson.loads(data_string)
     if is_json_clean(json_data) is True:
