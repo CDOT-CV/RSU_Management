@@ -86,7 +86,7 @@ Additionally, the config.py file contains the storage/container identifiers used
 
 The preliminary GCP set-up for the RSU data manager is below:
 
-![Alt text](/GCP_cloud_functions/RSU_Data_Manager_GCP_Set-Up.png?raw=true "Optional Title")
+![Alt text](GCP_cloud_functions/RSU Data Manager_ GCP Set-Up.png?raw=true "RSU Data Manager Mock Up")
 
 ## Contributors
 For any questions, contact Dhivahari Vivek at dhivahari.vivekanandasarma@state.co.us.
