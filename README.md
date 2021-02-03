@@ -90,5 +90,9 @@ CDOT's Cloud Function set-up refactors main.py into three Cloud Functions:
 - **raw-to-data-lake** function: retrives new uploads from the data ingest bucket and "checks" its cleanliness before sending approved, "clean" data to the designated "data lake" storage bucket in the GCS. This function is triggered by any new data upload to the data ingest storage bucket.
 - **lake-to-data-warehouse** function: retrives new uploads from the data lake bucket and publishes this data to a short-term "data warehouse" Pub/Sub thread as a byte string. This function is triggered by any new data upload to the data lake storage bucket. 
 
+### Diagram of Preliminary Cloud Function Set-Up in the GCS
+
+![Diagram of GCP Cloud Function Set Up](GCP_cloud_functions/GCPfunction_setup.png?raw=true)
+
 ## Contributors
 For any questions, contact Dhivahari Vivek at dhivahari.vivekanandasarma@state.co.us.
