@@ -22,7 +22,7 @@ The data_manager directory contains two sub-directories: sample_files and source
 
 ## Prerequisites and Set-Up
 
-### Environment Set-Up
+### Local Environment Set-Up
 
 This project supports Python >= 3.5. Refer to the requirements.txt document to [pip](https://pip.pypa.io/en/stable/) install the necessary packages. The Google Cloud Storage Python packages, for example, would be installed using:
 
@@ -38,9 +38,9 @@ Alternatively, install all necessary packages using:
 pip install -r .\requirements.txt
 ```
 
-### Google Cloud Platform Set-Up
+### Local Google Cloud Platform Set-Up
 
-In order to properly leverage the GCP's features, the user must verify that their GCP admin has granted the user's GCP Client both Storage and Pub/Sub Admin privileges. Additionally, it may be helpful to grant these privileges on a user account-basis.
+In order to properly leverage the GCP's features when running the script on a local machine, the user must verify that their GCP admin has granted the user's GCP Client both Storage and Pub/Sub Admin privileges. Additionally, it may be helpful to grant these privileges on a user account-basis.
 
 The user must also retrieve the JSON credentials for the service account used from their GCP administrator. The path to this JSON file will be assigned to the "GOOGLE_APPLICATION_CREDENTIALS" environment variable, as shown in the def main() function of the data_manager/source_code/main.py script.
 
@@ -48,7 +48,7 @@ The user must also retrieve the JSON credentials for the service account used fr
 
 The integration of RSUs into this script is yet to come. At present, the script (main.py) uses the RSU sample file 'RSU-ND-clean.json' (found in the data_manager/sample_files and referenced in the def main() function of the main.py script). This sample file accompanies the main.py script in data_manager/source_code. When running locally, ensure that main.py and the sample script are located in the same folder.
  
-To run this code:
+To run this code on a local machine:
 
 ```
 python3 main.py
@@ -72,12 +72,17 @@ The test for the main.py script is the test_main.py script, which can be found i
 
 ### How to Run
 
-To run the test script:
+To run the test script on a local machine:
 
 ```
 python -m pytest test_main.py
 ```
 
+## Google Cloud Storage: Cloud Function Set-Up
+
+The modularized code in main.py can be easily refactored into smaller modules, or Cloud Functions, in the GCP. CDOT's implementation divided main.py into three Cloud Functions, and the GCP_cloud_functions directory contains the files necessary for each GCP Cloud Function set-up. For instance, the GCP_cloud_functions/rsu-to-raw-ingest folder contains every file needed to set up and deploy the rsu-to-raw-ingest Cloud Function (which will pull new data from the RSU and send it to the data bucket containing the raw ingest).
+
+Additionally, the config.py file contains the storage/container identifiers used in each Cloud Function, and must either be included in each individual Cloud Function deployment, included in a [.gcloudignore file](https://cloud.google.com/sdk/gcloud/reference/topic/gcloudignore), or included in a [ConfigMap implementation](https://cloud.google.com/kubernetes-engine/docs/concepts/configmap).
 
 ## Contributors
 For any questions, contact Dhivahari Vivek at dhivahari.vivekanandasarma@state.co.us.
