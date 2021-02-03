@@ -80,11 +80,15 @@ To run the test script on a local machine:
 python -m pytest test_main.py
 ```
 
-## Google Cloud Storage: Cloud Function Set-Up
+## Google Cloud Storage (GCS): Cloud Function Set-Up
 
-The modularized code in main.py can be easily refactored into smaller modules, or Cloud Functions, in the GCP. CDOT's implementation divided main.py into three Cloud Functions, and the GCP_cloud_functions directory contains the files necessary for each GCP Cloud Function set-up. For instance, the GCP_cloud_functions/rsu-to-raw-ingest folder contains every file needed to set up and deploy the rsu-to-raw-ingest Cloud Function (which will pull new data from the RSU and send it to the data bucket containing the raw ingest).
+The modularized code in main.py can be easily refactored into smaller modules, or Cloud Functions, in the GCP. CDOT's implementation divided main.py into three Cloud Functions, and the GCP_cloud_functions directory contains the files necessary for each GCP Cloud Function set-up. For instance, the GCP_cloud_functions/rsu-to-raw-ingest folder contains every file needed to set up and deploy the rsu-to-raw-ingest Cloud Function (which will pull new data from the RSU and send it to the data bucket containing the raw ingest). Additionally, the config.py file contains the storage/container identifiers used in each Cloud Function, and must either be included in each individual Cloud Function deployment or included in a [ConfigMap implementation](https://cloud.google.com/kubernetes-engine/docs/concepts/configmap). 
 
-Additionally, the config.py file contains the storage/container identifiers used in each Cloud Function, and must either be included in each individual Cloud Function deployment or included in a [ConfigMap implementation](https://cloud.google.com/kubernetes-engine/docs/concepts/configmap).
+CDOT's Cloud Function set-up refactors main.py into three Cloud Functions: 
+
+- the rsu-to-raw-ingest function: retrieves the raw data ingest from the RSU(s) and sends it to the designated data bucket in the GCS which stores the raw ingest. This function is triggered by a Pub/Sub topic receiving timely messages from the Cloud Scheduler. For instance, the Cloud Scheduler may publish a message to this Pub/Sub topic every five minutes, triggering the Cloud Function to pull from the RSU and send to the designated data bucket every five minutes.
+- the raw-to-data-lake function: retrives new uploads from the data ingest bucket and "checks" its cleanliness before sending approved, "clean" data to the designated "data lake" storage bucket in the GCS. This function is triggered by any new data upload to the data ingest storage bucket.
+- the lake-to-data-warehouse function: retrives new uploads from the data lake bucket and publishes this data to a short-term "data warehouse" Pub/Sub thread as a byte string. This function is triggered by any new data upload to the data lake storage bucket. 
 
 ## Contributors
 For any questions, contact Dhivahari Vivek at dhivahari.vivekanandasarma@state.co.us.
