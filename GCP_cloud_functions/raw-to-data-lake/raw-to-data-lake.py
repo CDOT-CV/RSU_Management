@@ -1,9 +1,6 @@
-import json
 from google.cloud import storage
 import ndjson
-import time
 import datetime
-import pprint
 import logging
 from string import Template
 import config
