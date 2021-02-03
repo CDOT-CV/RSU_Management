@@ -1,7 +1,5 @@
 from google.cloud import storage
-import time
 import datetime
-import pprint
 import logging
 from string import Template
 import config
