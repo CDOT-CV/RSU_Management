@@ -8,7 +8,7 @@ from string import Template
 import config
 
 def rsu_to_raw_ingest(event, context):
-    """Triggered from a message on a Cloud Pub/Sub topic.
+    """Triggered by the Cloud Scheduler.
     Args:
          event (dict): Event payload.
          context (google.cloud.functions.Context): Metadata for the event.
