@@ -92,6 +92,8 @@ CDOT's Cloud Function set-up refactors main.py into three Cloud Functions:
 
 ### Diagram of Preliminary Cloud Function Set-Up in the GCS
 
+The following diagram details the current GCS set-up of the Cloud Functions (including triggers), the required storage buckets and Pub/Sub topics, and the scheduler. 
+
 ![Diagram of GCP Cloud Function Set Up](GCP_cloud_functions/GCPfunction_setup.png?raw=true)
 
 ## Contributors
