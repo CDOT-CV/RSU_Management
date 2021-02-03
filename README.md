@@ -84,9 +84,5 @@ The modularized code in main.py can be easily refactored into smaller modules, o
 
 Additionally, the config.py file contains the storage/container identifiers used in each Cloud Function, and must either be included in each individual Cloud Function deployment, included in a [.gcloudignore file](https://cloud.google.com/sdk/gcloud/reference/topic/gcloudignore), or included in a [ConfigMap implementation](https://cloud.google.com/kubernetes-engine/docs/concepts/configmap).
 
-The preliminary GCP set-up for the RSU data manager is below:
-
-![Alt text](GCP_cloud_functions/RSU Data Manager_ GCP Set-Up.png?raw=true "RSU Data Manager Mock Up")
-
 ## Contributors
 For any questions, contact Dhivahari Vivek at dhivahari.vivekanandasarma@state.co.us.
