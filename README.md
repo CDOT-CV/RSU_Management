@@ -80,7 +80,7 @@ python -m pytest test_main.py
 
 ## Google Cloud Storage: Cloud Function Set-Up
 
-The modularized code in main.py can be easily refactored into smaller modules, or Cloud Functions in the GCP. CDOT's implementation divided main.py into three Cloud Functions, and the GCP_cloud_functions directory contains the files necessary for each GCP Cloud Function set-up. For instance, the GCP_cloud_functions/rsu-to-raw-ingest folder contains every file needed to set up and deploy the rsu-to-raw-ingest Cloud Function (which will pull new data from the RSU and send it to the data bucket containing the raw ingest).
+The modularized code in main.py can be easily refactored into smaller modules, or Cloud Functions, in the GCP. CDOT's implementation divided main.py into three Cloud Functions, and the GCP_cloud_functions directory contains the files necessary for each GCP Cloud Function set-up. For instance, the GCP_cloud_functions/rsu-to-raw-ingest folder contains every file needed to set up and deploy the rsu-to-raw-ingest Cloud Function (which will pull new data from the RSU and send it to the data bucket containing the raw ingest).
 
 Additionally, the config.py file contains the storage/container identifiers used in each Cloud Function, and must either be included in each individual Cloud Function deployment, included in a [.gcloudignore file](https://cloud.google.com/sdk/gcloud/reference/topic/gcloudignore), or included in a [ConfigMap implementation](https://cloud.google.com/kubernetes-engine/docs/concepts/configmap).
 
