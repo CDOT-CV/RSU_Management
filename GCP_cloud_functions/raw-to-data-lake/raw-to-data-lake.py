@@ -11,29 +11,30 @@ def is_json_clean(rsu_data):
     Args: 
         rsu_data --> RSU data as a list of dicts from raw ingest to be checked
     """
-    check = True
+    isJSONclean = True
     
     #check 1: duplicate records
-    check1 = True
+    isDuplicate = True
     unique = []
-    for d in rsu_data:
-        if d not in unique:
-            unique.append(d)
+    for data in rsu_data:
+        if data not in unique:
+            unique.append(data)
     if len(unique) != len(rsu_data):
-        check1 = False
+        isDuplicate = False
+        return isDuplicate
 
     #check 2: empty records based on timeReceived key
-    check2 = True
-    for d in rsu_data:
-        if len(d["timeReceived"]) == 0:
-            check2 = False
+    isEmpty = True
+    for data in rsu_data:
+        if len(data["timeReceived"]) == 0:
+            isEmpty = False
             break
 
     # have any checks failed?
-    if (check1 == False) or (check2 == False):
-        check = False
+    if (isDuplicate == False) or (isEmpty == False):
+        isJSONclean = False
 
-    return check
+    return isJSONclean
 
 def raw_to_data_lake(event, context):
     """Triggered from a message on a Cloud Pub/Sub topic.
