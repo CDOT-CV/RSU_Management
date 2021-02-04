@@ -3,7 +3,7 @@
 
 | Build       | Quality Gate     | Code Coverage     |
 | :------------- | :----------: | -----------: |
-|  [![Build Status](https://travis-ci.com/CDOT-CV/RSU_Management.svg?branch=CV-29)](https://travis-ci.com/CDOT-CV/RSU_Management) | [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?branch=dev&project=CDOT-CV_RSU_Management&metric=alert_status)](https://sonarcloud.io/dashboard?id=CDOT-CV_RSU_Management)   | [![Coverage](https://sonarcloud.io/api/project_badges/measure?branch=dev&project=CDOT-CV_RSU_Management&metric=coverage)](https://sonarcloud.io/dashboard?id=CDOT-CV_RSU_Management)    |
+|  [![Build Status](https://travis-ci.com/CDOT-CV/RSU_Management.svg?branch=dev)](https://travis-ci.com/CDOT-CV/RSU_Management) | [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?branch=dev&project=CDOT-CV_RSU_Management&metric=alert_status)](https://sonarcloud.io/dashboard?id=CDOT-CV_RSU_Management&branch=dev)   | [![Coverage](https://sonarcloud.io/api/project_badges/measure?branch=dev&project=CDOT-CV_RSU_Management&metric=coverage)](https://sonarcloud.io/dashboard?id=CDOT-CV_RSU_Management)    |
 
 ## Project Description
 
@@ -22,7 +22,7 @@ The data_manager directory contains two sub-directories: sample_files and source
 
 ## Prerequisites and Set-Up
 
-### Environment Set-Up
+### Local Environment Set-Up
 
 This project supports Python >= 3.5. Refer to the requirements.txt document to [pip](https://pip.pypa.io/en/stable/) install the necessary packages. The Google Cloud Storage Python packages, for example, would be installed using:
 
@@ -38,9 +38,9 @@ Alternatively, install all necessary packages using:
 pip install -r .\requirements.txt
 ```
 
-### Google Cloud Platform Set-Up
+### Local Google Cloud Platform Set-Up
 
-In order to properly leverage the GCP's features, the user must verify that their GCP admin has granted the user's GCP Client both Storage and Pub/Sub Admin privileges. Additionally, it may be helpful to grant these privileges on a user account-basis.
+In order to properly leverage the GCP's features when running the script on a local machine, the user must verify that their GCP admin has granted the user's GCP Client both Storage and Pub/Sub Admin privileges. Additionally, it may be helpful to grant these privileges on a user account-basis.
 
 If the user runs the script on a local machine, they must also retrieve the JSON credentials for the service account used from their GCP administrator. The path to this JSON file will be assigned to the "GOOGLE_APPLICATION_CREDENTIALS" environment variable, as shown in the def main() function of the data_manager/source_code/main.py script.
 
@@ -50,7 +50,7 @@ If the user refactors the script to leverage Google Cloud Functions, including t
 
 The integration of RSUs into this script is yet to come. At present, the script (main.py) uses the RSU sample file 'RSU-ND-clean.json' (found in the data_manager/sample_files and referenced in the def main() function of the main.py script). This sample file accompanies the main.py script in data_manager/source_code. When running locally, ensure that main.py and the sample script are located in the same folder.
  
-To run this code:
+To run this code on a local machine:
 
 ```
 python3 main.py
@@ -74,12 +74,27 @@ The test for the main.py script is the test_main.py script, which can be found i
 
 ### How to Run
 
-To run the test script:
+To run the test script on a local machine:
 
 ```
 python -m pytest test_main.py
 ```
 
+## Google Cloud Storage (GCS): Cloud Function Set-Up
+
+The modularized code in main.py can be easily refactored into smaller modules, or Cloud Functions, in the GCP. CDOT's implementation divided main.py into three Cloud Functions, and the GCP_cloud_functions directory contains the files necessary for each GCP Cloud Function set-up. For instance, the GCP_cloud_functions/rsu-to-raw-ingest folder contains every file needed to set up and deploy the rsu-to-raw-ingest Cloud Function (which will pull new data from the RSU and send it to the data bucket containing the raw ingest). Additionally, the config.py file contains the storage/container identifiers used in each Cloud Function, and must either be included in each individual Cloud Function deployment or included in a [ConfigMap implementation](https://cloud.google.com/kubernetes-engine/docs/concepts/configmap). 
+
+CDOT's Cloud Function set-up refactors main.py into three Cloud Functions: 
+
+- **rsu-to-raw-ingest** function: retrieves the raw data ingest from the RSU(s) and sends it to the designated data bucket in the GCS which stores the raw ingest. This function is triggered by a Pub/Sub topic receiving timely messages from the Cloud Scheduler. For instance, the Cloud Scheduler may publish a message to this Pub/Sub topic every five minutes, triggering the Cloud Function to pull from the RSU and send to the designated data bucket every five minutes.
+- **raw-to-data-lake** function: retrives new uploads from the data ingest bucket and "checks" its cleanliness before sending approved, "clean" data to the designated "data lake" storage bucket in the GCS. This function is triggered by any new data upload to the data ingest storage bucket.
+- **lake-to-data-warehouse** function: retrives new uploads from the data lake bucket and publishes this data to a short-term "data warehouse" Pub/Sub thread as a byte string. This function is triggered by any new data upload to the data lake storage bucket. 
+
+### Diagram of Preliminary Cloud Function Set-Up in the GCS
+
+The following diagram details the current GCS set-up of the Cloud Functions (including triggers), the required storage buckets and Pub/Sub topics, and the scheduler. 
+
+![Diagram of GCP Cloud Function Set Up](GCP_cloud_functions/GCPfunction_setup.png?raw=true)
 
 ## Contributors
 For any questions, contact Dhivahari Vivek at dhivahari.vivekanandasarma@state.co.us.
