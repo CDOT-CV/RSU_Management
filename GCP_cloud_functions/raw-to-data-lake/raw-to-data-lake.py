@@ -14,14 +14,14 @@ def is_json_clean(rsu_data):
     isJSONclean = True
     
     #check 1: duplicate records
-    isDuplicate = True
+    isDuplicateFree = True
     unique = []
     for data in rsu_data:
         if data not in unique:
             unique.append(data)
     if len(unique) != len(rsu_data):
-        isDuplicate = False
-        return isDuplicate
+        isDuplicateFree = False
+        return isDuplicateFree
 
     #check 2: empty records based on timeReceived key
     isEmpty = True
@@ -31,7 +31,7 @@ def is_json_clean(rsu_data):
             break
 
     # have any checks failed?
-    if (isDuplicate == False) or (isEmpty == False):
+    if (isDuplicateFree == False) or (isEmpty == False):
         isJSONclean = False
 
     return isJSONclean
