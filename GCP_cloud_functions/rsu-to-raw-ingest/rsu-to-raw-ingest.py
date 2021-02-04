@@ -6,6 +6,9 @@ import config
 
 def rsu_to_raw_ingest(event, context):
     """Triggered by a Pub/Sub message published by the Cloud Scheduler.
+    When a new message is published by the Scheduler, this function will
+    pull from the RSU and send it to the raw ingest storage bucket. 
+    For now, the RSU pull is simulated by the sample 'RSU-ND-clean.json' file.
     Args:
          event (dict): Event payload.
          context (google.cloud.functions.Context): Metadata for the event.
