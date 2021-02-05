@@ -11,55 +11,61 @@ def is_json_clean(rsu_data):
     Args: 
         rsu_data --> RSU data as a list of dicts from raw ingest to be checked
     """
-    isJSONclean = True
+    check = True
     
     #check 1: duplicate records
-    isDuplicateFree = True
+    check1 = True
     unique = []
-    for data in rsu_data:
-        if data not in unique:
-            unique.append(data)
+    for d in rsu_data:
+        if d not in unique:
+            unique.append(d)
     if len(unique) != len(rsu_data):
-        isDuplicateFree = False
-        return isDuplicateFree
+        check1 = False
 
     #check 2: empty records based on timeReceived key
-    isEmpty = True
-    for data in rsu_data:
-        if len(data["timeReceived"]) == 0:
-            isEmpty = False
+    check2 = True
+    for d in rsu_data:
+        if len(d["timeReceived"]) == 0:
+            check2 = False
             break
 
     # have any checks failed?
-    if (isDuplicateFree == False) or (isEmpty == False):
-        isJSONclean = False
+    if (check1 == False) or (check2 == False):
+        check = False
 
-    return isJSONclean
+    return check
 
 def raw_to_data_lake(event, context):
-    """Triggered by new upload to the raw ingest storage bucket.
-    Function retrieves this new upload and checks for cleanliness
-    before sending clean data to the data lake bucket.
+    """Triggered from a message on a Cloud Pub/Sub topic.
     Args:
          event (dict): Event payload.
          context (google.cloud.functions.Context): Metadata for the event.
     """
 
-    # logging cloud function trigger
-    current_time = datetime.datetime.now()
-    log_message = Template('Cloud Function "raw-to-data-lake" was triggered at $time')
-    logging.info(log_message.safe_substitute(time=current_time))
-    
     client = storage.Client()
-    raw_bucket = client.get_bucket(config.config_vars['raw_ingest_id'])           
-    lake_bucket = client.get_bucket(config.config_vars['data_lake_id'])
-
-    # retrieving the latest blob upload to the bucket
-    blob = raw_bucket.get_blob(event['name'])
-    data_string = blob.download_as_bytes()
-    json_data = ndjson.loads(data_string)
-    if is_json_clean(json_data) is True:
-        raw_bucket.copy_blob(blob, lake_bucket)
+    
+    try:
+        # logging cloud function trigger
         current_time = datetime.datetime.now()
-        log_message = Template('Data lake updated at $time')
+        log_message = Template('Cloud Function "raw-to-data-lake" was triggered at $time')
         logging.info(log_message.safe_substitute(time=current_time))
+        
+        try:
+            raw_bucket = client.get_bucket(config.config_vars['raw_ingest_id'])           
+            lake_bucket = client.get_bucket(config.config_vars['data_lake_id'])
+            blob = client.get_bucket(event['bucket']).get_blob(event['name'])
+            data_string = blob.download_as_string()
+            json_data = ndjson.loads(data_string)
+            if is_json_clean(json_data) is True:
+                raw_bucket.copy_blob(blob, lake_bucket)
+                current_time = datetime.datetime.now()
+                log_message = Template('Data lake updated at $time')
+                logging.info(log_message.safe_substitute(time=current_time))
+
+        except Exception as error:
+            log_message = Template('Failed to perform operations on raw and/or data lake storage buckets due to $message')
+            logging.error(log_message.safe_substitute(message=error))
+    
+    except Exception as error:
+        log_message = Template('$error').substitute(error=error)
+        logging.error(log_message)
