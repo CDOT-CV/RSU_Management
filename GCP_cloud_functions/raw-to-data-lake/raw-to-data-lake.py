@@ -9,7 +9,7 @@ def is_json_clean(rsu_data):
     """
     Returns TRUE if json_file is clean. FALSE otherwise.
     Args: 
-        rsu_data --> RSU data as a list of dicts from raw ingest to be checked
+        rsu_data (list): RSU data as a list of dicts from raw ingest to be checked
     """
     isJSONclean = True
     
@@ -45,21 +45,27 @@ def raw_to_data_lake(event, context):
          context (google.cloud.functions.Context): Metadata for the event.
     """
 
+    client = storage.Client()
+    
     # logging cloud function trigger
     current_time = datetime.datetime.now()
     log_message = Template('Cloud Function "raw-to-data-lake" was triggered at $time')
     logging.info(log_message.safe_substitute(time=current_time))
-    
-    client = storage.Client()
-    raw_bucket = client.get_bucket(config.config_vars['raw_ingest_id'])           
-    lake_bucket = client.get_bucket(config.config_vars['data_lake_id'])
+        
+    try:
+        raw_bucket = client.get_bucket(config.config_vars['raw_ingest_id'])           
+        lake_bucket = client.get_bucket(config.config_vars['data_lake_id'])
+        blob = raw_bucket.get_blob(event['name'])
+        data_string = blob.download_as_bytes()
+        json_data = ndjson.loads(data_string)
+        if is_json_clean(json_data) is True:
+            raw_bucket.copy_blob(blob, lake_bucket)
+            current_time = datetime.datetime.now()
+            log_message = Template('Data lake updated at $time')
+            logging.info(log_message.safe_substitute(time=current_time))
 
-    # retrieving the latest blob upload to the bucket
-    blob = raw_bucket.get_blob(event['name'])
-    data_string = blob.download_as_bytes()
-    json_data = ndjson.loads(data_string)
-    if is_json_clean(json_data) is True:
-        raw_bucket.copy_blob(blob, lake_bucket)
-        current_time = datetime.datetime.now()
-        log_message = Template('Data lake updated at $time')
-        logging.info(log_message.safe_substitute(time=current_time))
+    except Exception as error:
+        log_message = Template('Failed to perform operations on raw and/or data lake storage buckets due to $message')
+        logging.error(log_message.safe_substitute(message=error))
+  
+
