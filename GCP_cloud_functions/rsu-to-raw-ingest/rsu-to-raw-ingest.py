@@ -16,11 +16,10 @@ def rsu_to_raw_ingest(event, context):
     
     client = storage.Client()
 
-    try:
-        # logging cloud function trigger
-        current_time = datetime.datetime.now()
-        log_message = Template('Cloud Function "rsu-to-raw ingest" was triggered at $time')
-        logging.info(log_message.safe_substitute(time=current_time))
+    # logging cloud function trigger
+    current_time = datetime.datetime.now()
+    log_message = Template('Cloud Function "rsu-to-raw ingest" was triggered at $time')
+    logging.info(log_message.safe_substitute(time=current_time))
 
         try:
             # retrieving raw ingest bucket and creating blob titled w/ timestamp of blob creation
@@ -37,7 +36,4 @@ def rsu_to_raw_ingest(event, context):
             log_message = Template('Failed to perform operations on raw ingest storage bucket due to $message.')
             logging.error(log_message.safe_substitute(message=error))
             
-    except Exception as error:
-        log_message = Template('$error').substitute(error=error)
-        logging.error(log_message)
 
