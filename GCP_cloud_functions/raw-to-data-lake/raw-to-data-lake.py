@@ -37,7 +37,9 @@ def is_json_clean(rsu_data):
     return isJSONclean
 
 def raw_to_data_lake(event, context):
-    """Triggered from a message on a Cloud Pub/Sub topic.
+    """Triggered by new upload to the raw ingest storage bucket.
+    Function retrieves this new upload and checks for cleanliness
+    before sending clean data to the data lake bucket.
     Args:
          event (dict): Event payload.
          context (google.cloud.functions.Context): Metadata for the event.
