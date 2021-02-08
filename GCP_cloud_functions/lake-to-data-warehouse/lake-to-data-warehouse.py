@@ -6,7 +6,9 @@ from string import Template
 import config
 
 def rsu_data_warehouse_bucket(event, context):
-    """Triggered from a message on a Cloud Pub/Sub topic.
+    """Triggered by new upload to the data lake storage bucket. 
+    Function retrieves this new upload and publishes it to the 
+    short-term warehouse Pub/Sub as a byte string.
     Args:
          event (dict): Event payload.
          context (google.cloud.functions.Context): Metadata for the event.
