@@ -9,7 +9,7 @@ def is_json_clean(rsu_data):
     """
     Returns TRUE if json_file is clean. FALSE otherwise.
     Args: 
-        rsu_data --> RSU data as a list of dicts from raw ingest to be checked
+        rsu_data (list): RSU data as a list of dicts from raw ingest to be checked
     """
     isJSONclean = True
     
@@ -54,8 +54,8 @@ def raw_to_data_lake(event, context):
         try:
             raw_bucket = client.get_bucket(config.config_vars['raw_ingest_id'])           
             lake_bucket = client.get_bucket(config.config_vars['data_lake_id'])
-            blob = client.get_bucket(event['bucket']).get_blob(event['name'])
-            data_string = blob.download_as_string()
+            blob = raw_bucket.get_blob(event['name'])
+            data_string = blob.download_as_bytes()
             json_data = ndjson.loads(data_string)
             if is_json_clean(json_data) is True:
                 raw_bucket.copy_blob(blob, lake_bucket)
