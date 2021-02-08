@@ -24,7 +24,7 @@ def rsu_data_warehouse_bucket(event, context):
         try:
             topic = publisher.topic_path(config.config_vars['project_id'], config.config_vars['data_warehouse_id'])
             blob = client.get_bucket(event['bucket']).get_blob(event['name'])
-            data_string = blob.download_as_string()
+            data_string = blob.download_as_bytes()
             future = publisher.publish(topic,data_string)
             print(future.result())
             
