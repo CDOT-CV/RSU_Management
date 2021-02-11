@@ -3,7 +3,7 @@ from google.cloud import pubsub_v1
 import datetime
 import logging
 from string import Template
-import config
+from GCP_cloud_functions import config
 
 def rsu_data_warehouse_bucket(event, context):
     """Triggered by new upload to the data lake storage bucket. 
