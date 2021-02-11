@@ -1,6 +1,6 @@
 import sys
 sys.path.append("..")
-from GCP_cloud_functions.rsu-to-raw-ingest import rsu_to_raw_ingest
+from GCP_cloud_functions.rsu_to_raw_ingest import rsu_to_raw_ingest
 import mock
 import base64
 import datetime
