@@ -42,7 +42,7 @@ def test_ExceptionRaised_WrongOrInvalidJSON(client):
     rsu_to_raw_ingest.rsu_to_raw_ingest(data, mock_context)
     blob = raw_bucket().blob
     blob_name = (str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")))
-    wrong_file = 'RSU-ND.json'
+    wrong_file = 'RSU-ND'
     blob.assert_called_with(blob_name)
     
     with pytest.raises(Exception):
