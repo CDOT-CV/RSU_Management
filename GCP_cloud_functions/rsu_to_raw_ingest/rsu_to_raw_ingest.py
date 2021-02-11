@@ -1,9 +1,10 @@
+import sys
+sys.path.append("..")
+from GCP_cloud_functions import config
 from google.cloud import storage
 import datetime
 import logging
 from string import Template
-sys.path.append("..")
-from GCP_cloud_functions import config
 
 def rsu_to_raw_ingest(event, context):
     """Triggered by a Pub/Sub message published by the Cloud Scheduler.
