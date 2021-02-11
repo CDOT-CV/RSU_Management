@@ -3,7 +3,8 @@ import ndjson
 import datetime
 import logging
 from string import Template
-import config
+sys.path.append("..")
+from GCP_cloud_functions import config
 
 def is_json_clean(rsu_data):
     """
