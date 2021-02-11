@@ -2,6 +2,7 @@ from google.cloud import storage
 import datetime
 import logging
 from string import Template
+sys.path.append("..")
 from GCP_cloud_functions import config
 
 def rsu_to_raw_ingest(event, context):
