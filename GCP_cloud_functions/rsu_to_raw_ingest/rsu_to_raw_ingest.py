@@ -26,7 +26,7 @@ def rsu_to_raw_ingest(event, context):
     try:
         # retrieving raw ingest bucket and creating blob titled w/ timestamp of blob creation
         raw_bucket = client.get_bucket(config.config_vars['raw_ingest_id'])
-        raw_blob = raw_bucket.blob(str(datetime.datetime.now()))
+        raw_blob = raw_bucket.blob(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
         raw_blob.upload_from_filename(filename='RSU-ND-clean.json')
 
         # logging raw ingest upload
