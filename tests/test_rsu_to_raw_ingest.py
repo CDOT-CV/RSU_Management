@@ -38,12 +38,11 @@ def test_ExceptionRaised_WrongOrInvalidJSON(client):
     
     name = 'Testing GCP automation, 1-2-3!'
     data = {'data': base64.b64encode(name.encode())}
-    raw_bucket = client().get_bucket
-    rsu_to_raw_ingest.rsu_to_raw_ingest(data, mock_context)
-    blob = raw_bucket().blob
-    blob_name = (str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")))
-    file_name = 'RSU-ND-clean.json'
-    blob().upload_from_filename.assert_called_with(filename=file_name)
     
+    raw_bucket = client.get_bucket
+    rsu_to_raw_ingest.rsu_to_raw_ingest(data, mock_context)
+    raw_blob = raw_bucket.blob
+    blob_name = (str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")))
+
     with pytest.raises(Exception):
-        blob.assert_called_with(raw_bucket)
+        raw_blob.assert_called_with(blob_name)
