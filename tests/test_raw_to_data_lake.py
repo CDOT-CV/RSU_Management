@@ -48,7 +48,8 @@ def test_Success(client):
     raw_bucket = 'rsu_raw-ingest'
     raw_bucketOBJ = client().get_bucket(raw_bucket)
     raw_blob = raw_bucketOBJ.blob(event['name'])
-    raw_blob.upload_from_string('{"column":1, "status":"yes"}')
+
+    raw_blob.upload_from_string('{"timeReceived": "2020-05-14T11:37:06Z", "year": "2020", "month": "05", "day": "14", "hour": "11", "version": "1.1.0", "type": "bsm"}')
     lake_bucket = 'rsu_data-lake'
     lake_bucketOBJ = client().get_bucket(lake_bucket)
 
