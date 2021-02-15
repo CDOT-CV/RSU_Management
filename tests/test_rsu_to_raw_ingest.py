@@ -2,8 +2,6 @@ from GCP_cloud_functions.rsu_to_raw_ingest import rsu_to_raw_ingest
 import mock
 import base64
 import datetime
-from unittest.mock import patch, mock_open
-from unittest import TestCase
 import pytest
 
 """
