@@ -27,8 +27,6 @@ def test_Success(client, publish_client):
     
     publish_client().publish.assert_called_with(topic_path, client().get_bucket().get_blob().download_as_bytes())
 
-    assert True
-
 @mock.patch("google.cloud.storage.Client")
 @mock.patch("google.cloud.pubsub_v1.PublisherClient")
 def test_ExceptionRaised_InvalidJSON(client, publish_client):
