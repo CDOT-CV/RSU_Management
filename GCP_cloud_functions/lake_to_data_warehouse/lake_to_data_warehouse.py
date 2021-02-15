@@ -1,5 +1,3 @@
-import sys
-sys.path.append("..")
 from GCP_cloud_functions import config
 from google.cloud import storage 
 from google.cloud import pubsub_v1
