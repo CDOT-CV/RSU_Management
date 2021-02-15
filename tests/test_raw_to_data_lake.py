@@ -2,8 +2,6 @@ from GCP_cloud_functions.raw_to_data_lake import raw_to_data_lake
 import mock
 from unittest.mock import patch, mock_open
 from unittest import TestCase
-from google.cloud.storage import Client
-from google.cloud.pubsub_v1 import PublisherClient
 import pytest
 
 """
