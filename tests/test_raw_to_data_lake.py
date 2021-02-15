@@ -1,5 +1,3 @@
-import sys
-sys.path.append("..")
 from GCP_cloud_functions.raw_to_data_lake import raw_to_data_lake
 import mock
 from unittest.mock import patch, mock_open
