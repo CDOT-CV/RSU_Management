@@ -1,5 +1,3 @@
-import sys
-sys.path.append("..")
 from GCP_cloud_functions.lake_to_data_warehouse import lake_to_data_warehouse
 import mock
 from unittest.mock import patch, mock_open
