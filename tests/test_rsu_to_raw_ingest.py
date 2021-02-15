@@ -4,8 +4,6 @@ import base64
 import datetime
 from unittest.mock import patch, mock_open
 from unittest import TestCase
-from google.cloud.storage import Client
-from google.cloud.pubsub_v1 import PublisherClient
 import pytest
 
 """
