@@ -49,8 +49,6 @@ def test_Success(client):
 
     raw_to_data_lake.raw_to_data_lake(event, context)
 
-    assert True
-
 @mock.patch("google.cloud.storage.Client")
 def test_ExceptionRaised_InvalidJSON(client):
     
