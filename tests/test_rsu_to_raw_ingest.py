@@ -25,8 +25,6 @@ def test_PubSubmitted(client):
     blob.assert_called_with(blob_name)
     blob().upload_from_filename.assert_called_with(filename=file_name)
 
-    assert True
-
 @mock.patch("google.cloud.storage.Client")
 def test_ExceptionRaised_WrongOrInvalidJSON(client):
     
