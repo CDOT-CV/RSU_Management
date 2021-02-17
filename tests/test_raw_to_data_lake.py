@@ -52,6 +52,8 @@ def test_Success(client):
     lake_bucketOBJ = client().get_bucket(lake_bucket)
 
     raw_to_data_lake.raw_to_data_lake(event, context)
+    
+    assert raw_to_data_lake.is_json_clean(raw_blob.download_as_bytes.ndjson.loads) is True
 
 @mock.patch("google.cloud.storage.Client")
 def test_ExceptionRaised_InvalidJSON(client):
