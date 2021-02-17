@@ -25,6 +25,10 @@ def test_is_json_clean_false_missing():
      
     assert raw_to_data_lake.is_json_clean(mock_json2) is False       # missing records = CHECK SHOULD FAIL
 
+def test_is_json_empty():
+    mock_jsonEmpty = [{}]
+    assert raw_to_data_lake.is_json_clean(mock_jsonEmpty) is False   # empty JSON string    
+    
 @mock.patch("google.cloud.storage.Client")
 def test_Success(client):
     
