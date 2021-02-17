@@ -45,8 +45,6 @@ def test_rsu_raw_bucket(client):
     blob.assert_called_with(file_name)
     blob().upload_from_filename.assert_called_with(filename=file_path)
 
-    assert True
-
 @mock.patch("google.cloud.storage.Client")
 def test_rsu_data_lake_bucket(client):
     
@@ -55,8 +53,6 @@ def test_rsu_data_lake_bucket(client):
     data_lake_bucket = 'rsu_data-lake-bucket'
     main.rsu_data_lake_bucket(client(), raw_bucket, data_lake_bucket)
     client().list_blobs.assert_called_with(raw_bucketOBJ)
-
-    assert True
 
 @mock.patch("google.cloud.storage.Client")
 def test_help_data_lake(client):
@@ -69,8 +65,6 @@ def test_help_data_lake(client):
     lake_bucketOBJ = client().get_bucket(lake_bucket)
     main.help_data_lake(raw_blob, raw_bucketOBJ, lake_bucketOBJ)
 
-    assert True
-
 @mock.patch("google.cloud.pubsub_v1.PublisherClient")
 @mock.patch("google.cloud.storage.Client")
 def test_rsu_data_warehouse_bucket(client, publish_client):
@@ -80,8 +74,6 @@ def test_rsu_data_warehouse_bucket(client, publish_client):
     topic_path = publish_client().topic_path('cdot-cv-ode-dev','rsu_data_warehouse')
     main.rsu_data_warehouse_bucket(publish_client(), client(), topic_path, data_lake_bucket)
     client().list_blobs.assert_called_with(lake_bucketOBJ)
-
-    assert True
 
 @mock.patch("google.cloud.pubsub_v1.PublisherClient")
 @mock.patch("google.cloud.storage.Client")
@@ -94,8 +86,6 @@ def test_help_warehouse(client, publish_client):
     topic_path = publish_client().topic_path('cdot-cv-ode-dev','rsu_data_warehouse')
     main.help_warehouse([lake_blob], publish_client(),topic_path)
     publish_client().publish.assert_called_with(topic_path, client().get_bucket().blob().download_as_string())
-    
-    assert True
 
 def test_main():
 
