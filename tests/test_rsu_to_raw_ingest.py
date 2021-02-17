@@ -19,6 +19,7 @@ def test_PubSubmitted(client):
     data = {'data': base64.b64encode(name.encode())}
     raw_bucket = client().get_bucket
     rsu_to_raw_ingest.rsu_to_raw_ingest(data, mock_context)
+    client().get_bucket.assert_called_with('rsu_raw-ingest')
     blob = raw_bucket().blob
     blob_name = (str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")))
     file_name = 'RSU-ND-clean.json'
