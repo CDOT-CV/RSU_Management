@@ -9,11 +9,11 @@ def is_json_clean(rsu_data):
     """
     Returns TRUE if json_file is clean. FALSE otherwise.
     Args: 
-        rsu_data (list): RSU data as a list of dicts from raw ingest to be checked
+        rsu_data --> RSU data as a list of dicts from raw ingest to be checked
     """
     isJSONclean = True
-    
-    #check 1: duplicate records
+
+    #check: duplicate records
     isDuplicateFree = True
     unique = []
     for data in rsu_data:
@@ -23,10 +23,10 @@ def is_json_clean(rsu_data):
         isDuplicateFree = False
         return isDuplicateFree
 
-    #check 2: empty records based on timeReceived key
+    #check: empty file or empty records based on timeReceived key
     isEmpty = True
     for data in rsu_data:
-        if len(data["timeReceived"]) == 0:
+        if bool(data) is False or (len(data["timeReceived"]) == 0):
             isEmpty = False
             break
 
