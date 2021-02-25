@@ -29,7 +29,7 @@ def test_Success(client, publish_client):
 
 @mock.patch("google.cloud.storage.Client")
 @mock.patch("google.cloud.pubsub_v1.PublisherClient")
-def test_ExceptionRaised_InvalidJSON(client, publish_client):
+def test_ExceptionRaised_BlobNotFound(client, publish_client):
     
     event = {
         'bucket': 'rsu_data-lake',
@@ -38,16 +38,33 @@ def test_ExceptionRaised_InvalidJSON(client, publish_client):
         'timeCreated': '0',
         'updated': '0'
     }
+
     context = mock.MagicMock()
     context.event_id = 'some-id'
     context.event_type = 'gcs-event'
 
-    lake_bucketOBJ = client().get_bucket
-    lake_to_data_warehouse.rsu_data_warehouse_bucket(event, context)
+    with pytest.raises(Exception):
+        lake_to_data_warehouse.rsu_data_warehouse_bucket(event, context)
+        lake_blob.assert_called_with("non-existent")
 
-    lake_blob = lake_bucketOBJ.blob
-    blob_name = event['name']
+@mock.patch("google.cloud.storage.Client")
+@mock.patch("google.cloud.pubsub_v1.PublisherClient")
+def test_ExceptionRaised_PubSubNotFound(client, publish_client):
+    
+    event = {
+        'bucket': 'rsu_data-lake',
+        'name': 'test',
+        'metageneration': 'some-metageneration',
+        'timeCreated': '0',
+        'updated': '0'
+    }
+
+    context = mock.MagicMock()
+    context.event_id = 'some-id'
+    context.event_type = 'gcs-event'
 
     with pytest.raises(Exception):
-        lake_blob.assert_called_with(blob_name)
+        lake_to_data_warehouse.rsu_data_warehouse_bucket(event, context)
+        topic.topic_path.assert_called_with("non-existent")
+    
     
