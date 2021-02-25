@@ -71,7 +71,7 @@ def test_ExceptionRaised_BlobNotFound(client):
     context.event_type = 'gcs-event'
 
     with pytest.raises(Exception):
-        rsu_to_raw_ingest.rsu_to_raw_ingest(data, mock_context)
+        raw_to_data_lake.raw_to_data_lake(data, mock_context)
         raw_blob.assert_called_with("non-existent")
 
 
@@ -91,5 +91,5 @@ def test_ExceptionRaised_BucketNotFound(client):
     context.event_type = 'gcs-event'
 
     with pytest.raises(Exception):
-        rsu_to_raw_ingest.rsu_to_raw_ingest(data, mock_context)
+        raw_to_data_lake.raw_to_data_lake(data, mock_context)
         client().get_bucket.assert_called_with("non-existent")
