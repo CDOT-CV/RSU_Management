@@ -56,7 +56,7 @@ def test_Success(client):
     assert raw_to_data_lake.is_json_clean(raw_blob.download_as_bytes.ndjson.loads) is True
 
 @mock.patch("google.cloud.storage.Client")
-def test_ExceptionRaised_InvalidJSON(client):
+def test_ExceptionRaised_BlobNotFound(client):
     
     event = {
         'bucket': 'rsu_raw-ingest',
@@ -65,15 +65,31 @@ def test_ExceptionRaised_InvalidJSON(client):
         'timeCreated': '0',
         'updated': '0'
     }
+    
     context = mock.MagicMock()
     context.event_id = 'some-id'
     context.event_type = 'gcs-event'
 
-    raw_bucketOBJ = client().get_bucket
-    raw_to_data_lake.raw_to_data_lake(event, context)
+    with pytest.raises(Exception):
+        rsu_to_raw_ingest.rsu_to_raw_ingest(data, mock_context)
+        raw_blob.assert_called_with("non-existent")
 
-    raw_blob = raw_bucketOBJ.blob
-    blob_name = event['name']
+
+@mock.patch("google.cloud.storage.Client")
+def test_ExceptionRaised_BucketNotFound(client):
+    
+    event = {
+        'bucket': 'rsu_raw-ingest',
+        'name': 'test',
+        'metageneration': 'some-metageneration',
+        'timeCreated': '0',
+        'updated': '0'
+    }
+    
+    context = mock.MagicMock()
+    context.event_id = 'some-id'
+    context.event_type = 'gcs-event'
 
     with pytest.raises(Exception):
-        raw_blob.assert_called_with(blob_name)
+        rsu_to_raw_ingest.rsu_to_raw_ingest(data, mock_context)
+        client().get_bucket.assert_called_with("non-existent")
