@@ -1,5 +1,9 @@
 from GCP_cloud_functions.raw_to_data_lake import raw_to_data_lake
+import raw_to_data_lake
+from google.api_core import exceptions
+from google.cloud import exceptions
 import mock
+import os
 import pytest
 
 """
@@ -27,69 +31,51 @@ def test_is_json_clean_false_missing():
 
 def test_is_json_empty():
     mock_jsonEmpty = [{}]
-    assert raw_to_data_lake.is_json_clean(mock_jsonEmpty) is False   # empty JSON string    
-    
-@mock.patch("google.cloud.storage.Client")
-def test_Success(client):
-    
-    event = {
-        'bucket': 'rsu_raw-ingest',
-        'name': 'test',
-        'metageneration': 'some-metageneration',
-        'timeCreated': '0',
-        'updated': '0'
-    }
-    context = mock.MagicMock()
-    context.event_id = 'some-id'
-    context.event_type = 'gcs-event'
+    assert raw_to_data_lake.is_json_clean(mock_jsonEmpty) is False   # empty JSON string
+
+@mock.patch("google.cloud.storage.Client", autospec=True)
+def test_raw_to_data_lake_success(client):
 
     raw_bucket = 'rsu_raw-ingest'
     raw_bucketOBJ = client().get_bucket(raw_bucket)
-    raw_blob = raw_bucketOBJ.blob(event['name'])
+    raw_blob = raw_bucketOBJ.blob('test')
 
     raw_blob.upload_from_string('{"timeReceived": "2020-05-14T11:37:06Z", "year": "2020", "month": "05", "day": "14", "hour": "11", "version": "1.1.0", "type": "bsm"}')
     lake_bucket = 'rsu_data-lake'
     lake_bucketOBJ = client().get_bucket(lake_bucket)
 
-    raw_to_data_lake.raw_to_data_lake(event, context)
-    
+    raw_to_data_lake.raw_to_data_lake(raw_bucketOBJ, lake_bucketOBJ, raw_blob)
+
     assert raw_to_data_lake.is_json_clean(raw_blob.download_as_bytes.ndjson.loads) is True
 
-@mock.patch("google.cloud.storage.Client")
+"""
+@mock.patch("google.cloud.storage.Client", autospec=True)
+def test_ExceptionRaised_BucketNotFound(client):    
+
+    raw_bucket = 'rsu_raw-ingest'
+    raw_bucketOBJ = client().get_bucket(raw_bucket)
+    raw_blob = raw_bucketOBJ.blob('test')
+
+    raw_blob.upload_from_string('{"timeReceived": "2020-05-14T11:37:06Z", "year": "2020", "month": "05", "day": "14", "hour": "11", "version": "1.1.0", "type": "bsm"}')
+    lake_bucket = 'rsu_data-lake'
+    lake_bucketOBJ = client().get_bucket(lake_bucket).side_effect = exceptions.NotFound('testing')
+
+    with pytest.raises(exceptions.NotFound):
+        raw_to_data_lake.raw_to_data_lake(raw_bucketOBJ, lake_bucketOBJ, raw_blob)
+"""
+
+@mock.patch("google.cloud.storage.Client", autospec=True)
 def test_ExceptionRaised_BlobNotFound(client):
-    
-    event = {
-        'bucket': 'rsu_raw-ingest',
-        'name': 'test',
-        'metageneration': 'some-metageneration',
-        'timeCreated': '0',
-        'updated': '0'
-    }
-    
-    context = mock.MagicMock()
-    context.event_id = 'some-id'
-    context.event_type = 'gcs-event'
 
-    with pytest.raises(Exception):
-        raw_to_data_lake.raw_to_data_lake(event, context)
-        raw_blob.assert_called_with("non-existent")
+    raw_bucket = 'rsu_raw-ingest'
+    raw_bucketOBJ = client().get_bucket(raw_bucket)
+    raw_blob = raw_bucketOBJ.blob('test')
+    print(type(raw_blob))
 
+    raw_blob.upload_from_string.side_effect = exceptions.NotFound('testing')
+    lake_bucket = 'rsu_data-lake'
+    lake_bucketOBJ = client().get_bucket(lake_bucket)
 
-@mock.patch("google.cloud.storage.Client")
-def test_ExceptionRaised_BucketNotFound(client):
-    
-    event = {
-        'bucket': 'rsu_raw-ingest',
-        'name': 'test',
-        'metageneration': 'some-metageneration',
-        'timeCreated': '0',
-        'updated': '0'
-    }
-    
-    context = mock.MagicMock()
-    context.event_id = 'some-id'
-    context.event_type = 'gcs-event'
+    with pytest.raises(exceptions.NotFound):
+        raw_to_data_lake.raw_to_data_lake(raw_bucketOBJ, lake_bucketOBJ, raw_blob)
 
-    with pytest.raises(Exception):
-        raw_to_data_lake.raw_to_data_lake(event, context)
-        client().get_bucket.assert_called_with("non-existent")
