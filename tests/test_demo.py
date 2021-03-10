@@ -7,6 +7,8 @@ import pytest
 import unittest
 
 # Here we can test with the existing methods
+
+
 @mock.patch.object(raw_to_data_lake, "raw_to_data_lake")
 @mock.patch("google.cloud.storage.Client", autospec=True)
 def test_main_ExceptionRaised_BucketNotFound(mockClient, mockRawToDataLakeFunction):
@@ -30,15 +32,18 @@ def test_main_ExceptionRaised_BucketNotFound(mockClient, mockRawToDataLakeFuncti
 # along with 'self' to the test method. we can then assert that exceptions are raised
 class TestRawToDataLake(unittest.TestCase):
 
+    @mock.patch.object(raw_to_data_lake, "is_json_clean", return_value=True)
     @mock.patch.object(raw_to_data_lake, "raw_to_data_lake")
     @mock.patch("google.cloud.storage.Client", autospec=True)
-    def test_main_ExceptionRaised_BucketNotFound(self, mockClient, mockRawToDataLakeFunction):
+    def test_main_ExceptionRaised_BucketNotFound(self, mockClient, mockRawToDataLakeFunction, mockIsJsonCleanFunction):
         # Arrange
         os.environ['raw_ingest_id'] = 'raw_id'
         os.environ['data_lake_id'] = 'data_lake_id'
         event = None
         context = None
         mockClient().get_bucket.side_effect = exceptions.NotFound('testing')
+
+        myTestVal = mockIsJsonCleanFunction("")
 
         # Act / Assert
         # unittest.TestCase.assertRaises
