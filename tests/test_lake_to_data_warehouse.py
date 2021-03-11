@@ -1,35 +1,13 @@
 from GCP_cloud_functions.lake_to_data_warehouse import lake_to_data_warehouse
 import mock
+from google.api_core import exceptions
+from google.cloud import exceptions
+import os
 import pytest
 
-@mock.patch("google.cloud.pubsub_v1.PublisherClient")
+@mock.patch.object(lake_to_data_warehouse, "rsu_data_warehouse_bucket")
 @mock.patch("google.cloud.storage.Client")
-def test_Success(client, publish_client):
-
-    event = {
-        'bucket': 'rsu_data-lake',
-        'name': 'test',
-        'metageneration': 'some-metageneration',
-        'timeCreated': '0',
-        'updated': '0'
-    }
-    context = mock.MagicMock()
-    context.event_id = 'some-id'
-    context.event_type = 'gcs-event'
-
-    lake_bucket = 'rsu_lake-bucket'
-    lake_bucketOBJ = client().get_bucket(lake_bucket)
-    lake_blob = lake_bucketOBJ.blob(event['name'])
-    lake_blob.upload_from_string('{"timeReceived": "2020-05-14T11:37:06Z", "year": "2020", "month": "05", "day": "14", "hour": "11", "version": "1.1.0", "type": "bsm"}')
-    topic_path = publish_client().topic_path('cdot-cv-ode-dev','rsu_data_warehouse')
-
-    lake_to_data_warehouse.rsu_data_warehouse_bucket(event, context)
-    
-    publish_client().publish.assert_called_with(topic_path, client().get_bucket().get_blob().download_as_bytes())
-
-@mock.patch("google.cloud.storage.Client")
-@mock.patch("google.cloud.pubsub_v1.PublisherClient")
-def test_ExceptionRaised_BlobNotFound(client, publish_client):
+def test_main_NotCalled_BlobNotFound(mockClient, mockLakeToDataWarehouseFunction):
     
     event = {
         'bucket': 'rsu_data-lake',
@@ -38,19 +16,36 @@ def test_ExceptionRaised_BlobNotFound(client, publish_client):
         'timeCreated': '0',
         'updated': '0'
     }
+    context = None
+    l_bucket = mockClient().get_bucket(event['bucket'])
+    l_bucket.get_blob.side_effect = None    # get_blob returns None if blob does not exist
 
-    context = mock.MagicMock()
-    context.event_id = 'some-id'
-    context.event_type = 'gcs-event'
+    assert not mockLakeToDataWarehouseFunction.called
 
-    with pytest.raises(Exception):
-        lake_to_data_warehouse.rsu_data_warehouse_bucket(event, context)
-        lake_blob.assert_called_with("non-existent")
-
-@mock.patch("google.cloud.storage.Client")
+@mock.patch.object(lake_to_data_warehouse, "rsu_data_warehouse_bucket")
 @mock.patch("google.cloud.pubsub_v1.PublisherClient")
-def test_ExceptionRaised_PubSubNotFound(client, publish_client):
-    
+@mock.patch("google.cloud.storage.Client")
+def test_main_NotCalled_TopicNotFound(mockClient, mockPublisher, mockLakeToDataWarehouseFunction):
+
+    os.environ['project_id'] = 'project_id'
+    os.environ['data_hub_id'] = 'hub_id'
+
+    event = None
+    context = None
+
+    topic = mockPublisher.topic_path(os.environ['project_id'], os.environ['data_hub_id'])
+    mockPublisher.topic_path.side_effect = None
+
+    assert not mockLakeToDataWarehouseFunction.called
+
+@mock.patch.object(lake_to_data_warehouse, "rsu_data_warehouse_bucket")
+@mock.patch("google.cloud.pubsub_v1.PublisherClient")
+@mock.patch("google.cloud.storage.Client")
+def test_main_Success(mockClient, mockPublisher, mockLakeToDataWarehouseFunction):
+
+    os.environ['project_id'] = 'project_id'
+    os.environ['data_hub_id'] = 'hub_id'
+
     event = {
         'bucket': 'rsu_data-lake',
         'name': 'test',
@@ -63,8 +58,14 @@ def test_ExceptionRaised_PubSubNotFound(client, publish_client):
     context.event_id = 'some-id'
     context.event_type = 'gcs-event'
 
-    with pytest.raises(Exception):
-        lake_to_data_warehouse.rsu_data_warehouse_bucket(event, context)
-        topic.topic_path.assert_called_with("non-existent")
+    
+    topic = mockPublisher.topic_path(os.environ['project_id'], os.environ['data_hub_id'])
+    l_bucket = mockClient().get_bucket(event['bucket'])
+    lake_blob = l_bucket.blob('test')
+    lake_blob.upload_from_string('{"timeReceived": "2020-05-14T11:37:06Z", "year": "2020", "month": "05", "day": "14", "hour": "11", "version": "1.1.0", "type": "bsm"}')    
+
+    lake_to_data_warehouse.main(event, context)
+
+    assert mockLakeToDataWarehouseFunction.called
     
     
