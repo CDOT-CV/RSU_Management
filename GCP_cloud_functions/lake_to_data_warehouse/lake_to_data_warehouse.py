@@ -5,7 +5,7 @@ import logging
 import os
 from string import Template
 
-def rsu_data_warehouse_bucket(pubsub_topic, lake_blob):
+def rsu_data_warehouse_bucket(publisher, pubsub_topic, lake_blob):
     """Triggered from a message on a Cloud Pub/Sub topic.
     Args:
          pubsub_topic: The pubsub topic serving as the short-term data hub.
@@ -37,9 +37,9 @@ def main(event, context):
          event (dict): Event payload.
          context (google.cloud.functions.Context): Metadata for the event.
     """
-    publisher = pubsub_v1.PublisherClient()
+    pub_client = pubsub_v1.PublisherClient()
     client = storage.Client()
 
-    topic = publisher.topic_path(os.environ['project_id'], os.environ['data_hub_id'])
+    topic = pub_client.topic_path(os.environ['project_id'], os.environ['data_hub_id'])
     blob = client.get_bucket(event['bucket']).get_blob(event['name'])
-    rsu_data_warehouse_bucket(topic, blob)
+    rsu_data_warehouse_bucket(pub_client, topic, blob)
