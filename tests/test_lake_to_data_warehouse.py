@@ -5,6 +5,18 @@ from google.cloud import exceptions
 import os
 import pytest
 
+@mock.patch("google.cloud.pubsub_v1.PublisherClient")
+@mock.patch("google.cloud.storage.Client")
+def test_lake_to_data_warehouse_success(client, publish_client):
+
+    topic = publish_client().topic_path('project_id', 'data_hub_id')
+    l_bucket = client().get_bucket('test_data_lake_bucket')
+    lake_blob = l_bucket.blob('test')
+    lake_blob.upload_from_string('{"timeReceived": "2020-05-14T11:37:06Z", "year": "2020", "month": "05", "day": "14", "hour": "11", "version": "1.1.0", "type": "bsm"}')
+
+    lake_to_data_warehouse.rsu_data_warehouse_bucket(publish_client(), topic, lake_blob)
+    publish_client().publish.assert_called_with(topic, client().get_bucket().blob().download_as_bytes())
+
 @mock.patch.object(lake_to_data_warehouse, "rsu_data_warehouse_bucket")
 @mock.patch("google.cloud.storage.Client")
 def test_main_NotCalled_BlobNotFound(mockClient, mockLakeToDataWarehouseFunction):
