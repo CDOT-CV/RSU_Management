@@ -54,7 +54,7 @@ def raw_to_data_lake(raw_bucket, lake_bucket,blob):
     try:
         data_string = blob.download_as_bytes()
         json_data = json.loads(data_string)
-        if is_json_clean(json_data) is True:
+        if is_json_clean(json_data):
             raw_bucket.copy_blob(blob, lake_bucket)
             current_time = datetime.datetime.now()
             log_message = Template('Data lake updated at $time')
