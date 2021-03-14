@@ -4,6 +4,7 @@ from google.cloud import exceptions
 import mock
 import os
 import pytest
+from unittest.mock import patch, mock_open
 
 """
 This script handles the unit testing for the raw-to-data-lake Cloud Function.
@@ -28,12 +29,12 @@ def test_is_json_clean_false_missing():
      
     assert raw_to_data_lake.is_json_clean(mock_json2) is False       # missing records = CHECK SHOULD FAIL
 
-def test_is_json_empty():
+def test_is_json_clean_false_empty():
     mock_jsonEmpty = [{}]
     assert raw_to_data_lake.is_json_clean(mock_jsonEmpty) is False   # empty JSON string
 
 @mock.patch("google.cloud.storage.Client", autospec=True)
-def test_raw_to_data_lake_success(client):
+def test_raw_to_data_lake_success_isJSONcleanisTrue(client):
 
     raw_bucket = 'rsu_raw-ingest'
     raw_bucketOBJ = client().get_bucket(raw_bucket)
@@ -46,6 +47,40 @@ def test_raw_to_data_lake_success(client):
     raw_to_data_lake.raw_to_data_lake(raw_bucketOBJ, lake_bucketOBJ, raw_blob)
 
     assert raw_to_data_lake.is_json_clean(raw_blob.download_as_bytes.ndjson.loads) is True
+
+@mock.patch.object(raw_to_data_lake, "is_json_clean", return_value=True)
+@mock.patch("google.cloud.storage.Client", autospec=True)
+def test_raw_to_data_lake_success_blob_copied(client, mockIsJSONCleanFunction):
+
+    json_bytes = b'{"timeReceived": "2020-05-14T11:37:06Z", "year": "2020", "month": "05", "day": "14", "hour": "11", "version": "1.1.0", "type": "bsm"}'
+    os.environ['raw_ingest_id'] = 'rsu_raw-ingest'
+    os.environ['data_lake_id'] = 'rsu_data-lake'
+
+    raw_bucketOBJ = client().get_bucket(os.environ['raw_ingest_id'])
+    raw_blob = raw_bucketOBJ.blob('test')
+    lake_bucketOBJ = client().get_bucket(os.environ['data_lake_id'])
+
+    raw_blob.upload_from_string('{"timeReceived": "2020-05-14T11:37:06Z", "year": "2020", "month": "05", "day": "14", "hour": "11", "version": "1.1.0", "type": "bsm"}')
+    raw_blob.download_as_bytes.return_value = json_bytes
+
+    raw_to_data_lake.raw_to_data_lake(raw_bucketOBJ, lake_bucketOBJ, raw_blob) 
+    raw_bucketOBJ.copy_blob.assert_called_with(raw_blob, lake_bucketOBJ)
+
+@mock.patch("google.cloud.storage.Client", autospec=True)
+def test_raw_to_data_lake_Exception_jsonConversionError(client):
+
+    not_json_bytes = b'not a correct json string'
+    os.environ['raw_ingest_id'] = 'rsu_raw-ingest'
+    os.environ['data_lake_id'] = 'rsu_data-lake'
+
+    raw_bucketOBJ = client().get_bucket(os.environ['raw_ingest_id'])
+    raw_blob = raw_bucketOBJ.blob('test')
+    lake_bucketOBJ = client().get_bucket(os.environ['data_lake_id'])
+
+    raw_blob.upload_from_string('not a correct json string')
+    raw_blob.download_as_bytes.return_value = not_json_bytes
+
+    assert not raw_bucketOBJ.copy_blob.called
 
 @mock.patch.object(raw_to_data_lake, "raw_to_data_lake")
 @mock.patch("google.cloud.storage.Client", autospec=True)
