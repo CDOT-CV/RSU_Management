@@ -116,7 +116,7 @@ def rsu_data_lake_bucket(client, r_bucket, l_bucket):
     
     print("End of bucket #2.") 
 
-def help_warehouse(list_blobs, client, topic):
+def download_and_publish_blobs_to_data_warehouse(list_blobs, client, topic):
     """
     Helper function for the rsu_data_warehouse_bucket() function which
     publishes data as a byte string to the Pub/Sub topic.
@@ -148,7 +148,7 @@ def rsu_data_warehouse_bucket(pub_client, storage_client, topic, bucket):
     print("\nBeginning of bucket #3.")
     lake_bucket = storage_client.get_bucket(bucket)
     lake_blobs = storage_client.list_blobs(lake_bucket)          # retrieving data lake bucket
-    help_warehouse(lake_blobs, pub_client, topic)
+    download_and_publish_blobs_to_data_warehouse(lake_blobs, pub_client, topic)
 
     # logging publication message
     current_time = datetime.datetime.utcnow()    
