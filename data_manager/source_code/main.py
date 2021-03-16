@@ -13,7 +13,6 @@ The data warehouse is currently a Pub/Sub topic to which cleaned data will be pu
 import json
 import ndjson
 import os
-import pytest
 from google.cloud.storage import Client             # google cloud - storage / bucket access
 from google.cloud.pubsub_v1 import PublisherClient  # google cloud - pub/sub topic access
 import datetime
