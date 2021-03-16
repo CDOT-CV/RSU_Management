@@ -53,30 +53,15 @@ def test_main_NotCalled_TopicNotFound(mockClient, mockPublisher, mockLakeToDataW
 @mock.patch("google.cloud.pubsub_v1.PublisherClient")
 @mock.patch("google.cloud.storage.Client")
 def test_main_Success(mockClient, mockPublisher, mockLakeToDataWarehouseFunction):
-
+    event = mock.MagicMock()
+    context = mock.MagicMock()    
     os.environ['project_id'] = 'project_id'
     os.environ['data_hub_id'] = 'hub_id'
-
-    event = {
-        'bucket': 'rsu_data-lake',
-        'name': 'test',
-        'metageneration': 'some-metageneration',
-        'timeCreated': '0',
-        'updated': '0'
-    }
-
-    context = mock.MagicMock()
-    context.event_id = 'some-id'
-    context.event_type = 'gcs-event'
-
-    
-    topic = mockPublisher.topic_path(os.environ['project_id'], os.environ['data_hub_id'])
-    l_bucket = mockClient().get_bucket(event['bucket'])
-    lake_blob = l_bucket.blob('test')
-    lake_blob.upload_from_string('{"timeReceived": "2020-05-14T11:37:06Z", "year": "2020", "month": "05", "day": "14", "hour": "11", "version": "1.1.0", "type": "bsm"}')    
-
     lake_to_data_warehouse.main(event, context)
 
+    mockPublisher().topic_path.assert_called_with(os.environ['project_id'], os.environ['data_hub_id'])
+    mockClient().get_bucket.assert_called_with(event['bucket'])
+    mockClient().get_bucket(event['bucket']).get_blob.assert_called_with(event['name'])
     assert mockLakeToDataWarehouseFunction.called
     
     
