@@ -116,7 +116,7 @@ def test_rsu_data_warehouse_bucket(client, publish_client):
     main.rsu_data_warehouse_bucket(publish_client(), client(), topic_path, data_lake_bucket)
     client().list_blobs.assert_called_with(lake_bucketOBJ)
 
-@mock.patch.object(main, "help_warehouse")
+@mock.patch.object(main, "download_and_publish_blobs_to_data_warehouse")
 @mock.patch("google.cloud.pubsub_v1.PublisherClient")
 @mock.patch("google.cloud.storage.Client")
 def test_rsu_data_warehouse_ExceptionRaised_BucketNotFound(client, publish_client, mockHelpDataWarehouse):
@@ -130,7 +130,7 @@ def test_rsu_data_warehouse_ExceptionRaised_BucketNotFound(client, publish_clien
     
     assert not mockHelpDataWarehouse.called
 
-@mock.patch.object(main, "help_warehouse")
+@mock.patch.object(main, "download_and_publish_blobs_to_data_warehouse")
 @mock.patch("google.cloud.pubsub_v1.PublisherClient")
 @mock.patch("google.cloud.storage.Client")
 def test_rsu_data_warehouse_ExceptionRaised_TopicNotFound(client, publish_client, mockHelpDataWarehouse):
@@ -150,7 +150,5 @@ def test_help_warehouse(client, publish_client):
     lake_blob = lake_bucketOBJ.blob("test")
     lake_blob.upload_from_string('{"column":1, "status":"yes"}')
     topic_path = publish_client().topic_path('cdot-cv-ode-dev','rsu_data_warehouse')
-    main.help_warehouse([lake_blob], publish_client(),topic_path)
+    main.download_and_publish_blobs_to_data_warehouse([lake_blob], publish_client(),topic_path)
     publish_client().publish.assert_called_with(topic_path, client().get_bucket().blob().download_as_bytes())
-
-
