@@ -1,6 +1,5 @@
 from data_manager.source_code import main
 import mock
-import base64
 from unittest.mock import patch, mock_open
 from unittest import TestCase
 from google.api_core import exceptions
