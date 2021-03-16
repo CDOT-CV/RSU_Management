@@ -50,36 +50,24 @@ def test_raw_to_data_lake_success_isJSONcleanisTrue(client):
 
 @mock.patch.object(raw_to_data_lake, "is_json_clean", return_value=True)
 @mock.patch("google.cloud.storage.Client", autospec=True)
-def test_raw_to_data_lake_success_blob_copied(client, mockIsJSONCleanFunction):
+@mock.patch.object(raw_to_data_lake, "json")
+def test_raw_to_data_lake_success_blob_copied(json, client, mockIsJSONCleanFunction):
+    raw_bucketOBJ = mock.Mock()
+    lake_bucketOBJ = mock.Mock()
+    raw_blob = mock.Mock()
 
-    json_bytes = b'{"timeReceived": "2020-05-14T11:37:06Z", "year": "2020", "month": "05", "day": "14", "hour": "11", "version": "1.1.0", "type": "bsm"}'
-    os.environ['raw_ingest_id'] = 'rsu_raw-ingest'
-    os.environ['data_lake_id'] = 'rsu_data-lake'
-
-    raw_bucketOBJ = client().get_bucket(os.environ['raw_ingest_id'])
-    raw_blob = raw_bucketOBJ.blob('test')
-    lake_bucketOBJ = client().get_bucket(os.environ['data_lake_id'])
-
-    raw_blob.upload_from_string('{"timeReceived": "2020-05-14T11:37:06Z", "year": "2020", "month": "05", "day": "14", "hour": "11", "version": "1.1.0", "type": "bsm"}')
-    raw_blob.download_as_bytes.return_value = json_bytes
-
-    raw_to_data_lake.raw_to_data_lake(raw_bucketOBJ, lake_bucketOBJ, raw_blob) 
+    raw_to_data_lake.raw_to_data_lake(raw_bucketOBJ, lake_bucketOBJ, raw_blob)
     raw_bucketOBJ.copy_blob.assert_called_with(raw_blob, lake_bucketOBJ)
 
+@mock.patch.object(raw_to_data_lake, "is_json_clean", return_value=False)
 @mock.patch("google.cloud.storage.Client", autospec=True)
-def test_raw_to_data_lake_Exception_jsonConversionError(client):
+@mock.patch.object(raw_to_data_lake, "json")
+def test_raw_to_data_lake_Error_blob_JSONnotClean(json, client, mockIsJSONCleanFunction):
+    raw_bucketOBJ = mock.Mock()
+    lake_bucketOBJ = mock.Mock()
+    raw_blob = mock.Mock()
 
-    not_json_bytes = b'not a correct json string'
-    os.environ['raw_ingest_id'] = 'rsu_raw-ingest'
-    os.environ['data_lake_id'] = 'rsu_data-lake'
-
-    raw_bucketOBJ = client().get_bucket(os.environ['raw_ingest_id'])
-    raw_blob = raw_bucketOBJ.blob('test')
-    lake_bucketOBJ = client().get_bucket(os.environ['data_lake_id'])
-
-    raw_blob.upload_from_string('not a correct json string')
-    raw_blob.download_as_bytes.return_value = not_json_bytes
-
+    raw_to_data_lake.raw_to_data_lake(raw_bucketOBJ, lake_bucketOBJ, raw_blob)
     assert not raw_bucketOBJ.copy_blob.called
 
 @mock.patch.object(raw_to_data_lake, "raw_to_data_lake")
