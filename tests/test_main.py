@@ -80,29 +80,30 @@ def test_rsu_data_lake_bucket_ExceptionRaised_BucketNotFound(client, mockHelpDat
     assert not mockHelpDataLake.called
 
 @mock.patch("google.cloud.storage.Client")
-def test_help_data_lake(client):
+def test_verify_and_copy_blobs_to_data_lake_success(client):
 
     json_bytes = b'{"timeReceived": "2020-05-14T11:37:06Z", "year": "2020", "month": "05", "day": "14", "hour": "11", "version": "1.1.0", "type": "bsm"}'
     raw_bucket = client().get_bucket('rsu_raw-ingest')
     lake_bucket = client().get_bucket('rsu_data-lake')
     raw_blob = raw_bucket.blob("test")
 
-    raw_blob.upload_from_string('{"timeReceived": "2020-05-14T11:37:06Z", "year": "2020", "month": "05", "day": "14", "hour": "11", "version": "1.1.0", "type": "bsm"}')
     raw_blob.download_as_bytes.return_value = json_bytes
 
     main.verify_and_copy_blobs_to_data_lake([raw_blob], raw_bucket, lake_bucket)
     raw_bucket.copy_blob.assert_called_with(raw_blob, lake_bucket)
 
 @mock.patch("google.cloud.storage.Client")
-def test_help_data_lake_ExceptionRaised_jsonCoversionError(client):
+def test_verify_and_copy_blobs_to_data_lake_ExceptionRaised_jsonConversionError(client):
     
     invalid_json_bytes = b'not a valid json string'
     raw_bucket = client().get_bucket('rsu_raw-ingest')
     lake_bucket = client().get_bucket('rsu_data-lake')
     raw_blob = raw_bucket.blob('test')
 
-    raw_blob.upload_from_string('not a valid json string')
     raw_blob.download_as_bytes.return_value = invalid_json_bytes
+
+    with pytest.raises(Exception):
+        main.verify_and_copy_blobs_to_data_lake([raw_blob], raw_bucket, lake_bucket)
 
     assert not raw_bucket.copy_blob.called
 
@@ -130,20 +131,9 @@ def test_rsu_data_warehouse_ExceptionRaised_BucketNotFound(client, publish_clien
     
     assert not mockHelpDataWarehouse.called
 
-@mock.patch.object(main, "download_and_publish_blobs_to_data_warehouse")
 @mock.patch("google.cloud.pubsub_v1.PublisherClient")
 @mock.patch("google.cloud.storage.Client")
-def test_rsu_data_warehouse_ExceptionRaised_TopicNotFound(client, publish_client, mockHelpDataWarehouse):
-    
-    data_lake_bucket = client().get_bucket("rsu_data-lake")
-    topic = publish_client.topic_path('cdot-cv-ode-dev', 'rsu_data_warehouse')
-    publish_client.topic_path.side_effect = None
-
-    assert not mockHelpDataWarehouse.called
-
-@mock.patch("google.cloud.pubsub_v1.PublisherClient")
-@mock.patch("google.cloud.storage.Client")
-def test_help_warehouse(client, publish_client):
+def test_download_and_publish_blobs_to_data_warehouse_success(client, publish_client):
     
     data_lake_bucket = 'rsu_data-lake-bucket'
     lake_bucketOBJ = client().get_bucket(data_lake_bucket)
