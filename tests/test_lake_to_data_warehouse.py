@@ -1,6 +1,5 @@
 from GCP_cloud_functions.lake_to_data_warehouse import lake_to_data_warehouse
 import mock
-from google.api_core import exceptions
 from google.cloud import exceptions
 import os
 import pytest
