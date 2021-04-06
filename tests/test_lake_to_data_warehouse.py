@@ -1,8 +1,6 @@
 from GCP_cloud_functions.lake_to_data_warehouse import lake_to_data_warehouse
 import mock
-from google.cloud import exceptions
 import os
-import pytest
 
 @mock.patch("google.cloud.pubsub_v1.PublisherClient")
 @mock.patch("google.cloud.storage.Client")
