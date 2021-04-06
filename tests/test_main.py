@@ -91,6 +91,18 @@ def test_verify_and_copy_blobs_to_data_lake_success(client):
     main.verify_and_copy_blobs_to_data_lake([raw_blob], raw_bucket, lake_bucket)
     raw_bucket.copy_blob.assert_called_with(raw_blob, lake_bucket)
 
+@mock.patch.object(main, "is_json_clean", return_value=False)
+@mock.patch("google.cloud.storage.Client")
+def test_verify_and_copy_blobs_to_data_lake_jsonNotClean(client, mockIsJSONCleanFunction):
+    raw_bucketOBJ = mock.Mock()
+    lake_bucketOBJ = mock.Mock()
+    raw_blob = mock.Mock()
+
+    with pytest.raises(Exception):
+        main.verify_and_copy_blobs_to_data_lake([raw_blob], raw_bucketOBJ, lake_bucketOBJ)
+    
+    assert not raw_bucketOBJ.copy_blob.called
+
 @mock.patch("google.cloud.storage.Client")
 def test_verify_and_copy_blobs_to_data_lake_ExceptionRaised_jsonConversionError(client):
     
