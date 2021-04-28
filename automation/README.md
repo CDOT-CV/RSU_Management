@@ -11,7 +11,7 @@ The script can currently perform two main tasks:
 
 ## Running the script
 To run the `configrsu_msgfwd.py` script you must provide it some information so that it can do its job and run it on a machine that is configured to use SNMP, specifically `snmpwalk` and `snmpset`.
-- A text file containing a list of RSU IP addresses this can look like the following:
+- A one column CSV or text file containing a list of RSU IP addresses this can look like the following:
 ```
 10.0.0.1
 10.0.0.2
