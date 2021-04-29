@@ -48,6 +48,6 @@ RSU-MIB.txt
 SNMPv2-TC.txt
 ```
 
-The main MIB profile used for Kapsch RSUs is the `RSU-MIB.txt`. This MIB contains all of the standard methods defined by the USODT requirements for SNMP standards for RSUs. However, Kapsch has some unique functionality to those standard methods that requires the usage of two other MIB profiles. `IPV6-TC.txt` provides IPV6 address manipulation and reading functionality. `SNMPv2-TC.txt` provides other functionality that the RSU-MIB profile requires. This is specifically for the Kapsch RSUs. Other manufactures may have implemented different MIB profiles to follow the USDOT standard and may require other MIB profiles are just the RSU-MIB.
+The main MIB profile used for Kapsch RSUs is the `RSU-MIB.txt`. This MIB contains all of the standard methods defined by the USDOT requirements for SNMP standards for RSUs. However, Kapsch has some unique functionality to those standard methods that requires the usage of two other MIB profiles. `IPV6-TC.txt` provides IPV6 address manipulation and reading functionality. `SNMPv2-TC.txt` provides other functionality that the RSU-MIB profile requires. This is specifically for the Kapsch RSUs. Other manufactures may have implemented different MIB profiles to follow the USDOT standard and may require other MIB profiles are just the RSU-MIB.
 
 Running snmpwalk and snmpset commands should now work after this.
