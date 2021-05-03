@@ -7,14 +7,17 @@ from unittest import TestCase
 
 import configrsu_msgfwd
 
+os.environ['SNMP_USERNAME'] = 'testUser'
+os.environ['SNMP_PASSWORD'] = 'testpassword'
+
 def test_ip_to_hex_little_endian():
   ip = '8.8.8.8'
-  hex = configrsu_msgfwd.ip_to_hex(ip, True)
-  assert hex == '00000000000000000000ffff08080808'
+  hex = configrsu_msgfwd.ip_to_hex(ip, 0)
+  assert hex == '00000000000000000000000008080808'
 
 def test_ip_to_hex_big_endian():
   ip = '8.8.8.8'
-  hex = configrsu_msgfwd.ip_to_hex(ip, False)
+  hex = configrsu_msgfwd.ip_to_hex(ip, 1)
   assert hex == '08080808000000000000000000000000'
 
 def test_rsu_status_off():
@@ -49,7 +52,7 @@ def test_main():
   try:
     with open(file, newline='') as csvfile:
       doc = csv.reader(csvfile, delimiter=',')
-      configrsu_msgfwd.main(doc, dest_ip, udp_port, rsu_index)
+      configrsu_msgfwd.main(doc, dest_ip, udp_port, rsu_index, 0)
     assert True
   except Exception as e:
     print('Encountered issue: {}'.format(e))
