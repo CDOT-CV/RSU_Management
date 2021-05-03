@@ -2,7 +2,7 @@
 This directory contains a script that is used for configuring a large number of CDOT Kapsch RSUs autonomously by providing it a list of RSU IPs and some other arguments.
 
 ## What the script does
-The current script can be run manually from a command line shell. It can be ran from internally in an RSU or externally from an RSU. This was developed with running it externally in mind. It has been written in a way that can easily be transformed to be invoked in other methods, such as a REST API, but these are not supported as is.
+The current script can be run manually from a command line shell. This script needs to be ran externally from an RSU on a separate machine.
 
 The script can currently perform two main tasks:
 - Configure an RSU's operate mode. "Standby" and "Operate" are currently the only two supported states.
@@ -21,12 +21,13 @@ To run the `configrsu_msgfwd.py` script you must provide it some information so 
 - The destination IP. Example: `10.0.1.5`
 - The UDP port the RSU should forward the packets to at the destination IP. Example: `46800`
 - The RSU index the SNMP configuration should be written to on the RSU. Example: `20`
+- Endian type. Little endian = 0. Big endian = 1. Any number outside of these will default to big endian.
 
 These will be provided to the script in the form of arguments.
 
 Check out the example shell command to run the script in a terminal:
 ```
-python3 configrsu_msgfwd.py /home/user/RSU_Management/tests/test_files/snmp_test.csv 10.0.1.5 46800 20
+python3 configrsu_msgfwd.py /home/user/RSU_Management/tests/test_files/snmp_test.csv 10.0.1.5 46800 20 0
 ```
 ## Setting up SNMP on external machine
 Setting up new VM with SNMP capabilities for CDOT for remote RSU configuration
