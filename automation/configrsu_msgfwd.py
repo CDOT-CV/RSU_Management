@@ -1,23 +1,20 @@
-import argparse
 import csv
 import os
 import sys
 
-os.environ['SNMP_USERNAME'] = 'authOnlyUser'
-os.environ['SNMP_PASSWORD'] = 'herbertherbert'
-
 snmp_authstring = '-u {user} -a SHA -A {pw} -x AES -X {pw} -l authNoPriv'.format(user=os.getenv('SNMP_USERNAME'), pw=os.getenv('SNMP_PASSWORD'))
 
-def ip_to_hex(ip, little_endian):
+def ip_to_hex(ip, endian):
   hex_dest_ip = ''
   for octet in ip.split('.'):
     if len(hex(int(octet))[2:]) == 1:
       hex_dest_ip += '0'
     hex_dest_ip += hex(int(octet))[2:]
   
-  if little_endian:
-    return '00000000000000000000ffff' + hex_dest_ip
-  return hex_dest_ip + '000000000000000000000000'
+  if endian == 0:
+    return '000000000000000000000000' + hex_dest_ip
+  else:
+    return hex_dest_ip + '000000000000000000000000'
 
 def set_rsu_status(rsu_ip, operate):
   if operate:
@@ -25,12 +22,14 @@ def set_rsu_status(rsu_ip, operate):
   else:
     os.system('snmpset -v 3 {auth} {rsuip} RSU-MIB:rsuMode.0 i 2'.format(auth=snmp_authstring, rsuip=rsu_ip))
 
-def config_msgfwd(rsu_ip, dest_ip, udp_port, rsu_index):
+def config_msgfwd(rsu_ip, dest_ip, udp_port, rsu_index, endian):
   # Put RSU in standby
   set_rsu_status(rsu_ip, operate=False)
   
-  # Create a little endian hex version of destIP
-  hex_dest_ip = ip_to_hex(dest_ip, little_endian=True)
+  # Create a hex version of destIP using the specified endian type
+  hex_dest_ip = ip_to_hex(dest_ip, endian)
+  
+  print('Running SNMP config on {}'.format(rsu_ip))
   
   # Perform configurations
   os.system('snmpset -v 3 {auth} {rsuip} RSU-MIB:rsuDsrcFwdPsid.{index} s " "'.format(auth=snmp_authstring, rsuip=rsu_ip, index=rsu_index))
@@ -39,21 +38,24 @@ def config_msgfwd(rsu_ip, dest_ip, udp_port, rsu_index):
   os.system('snmpset -v 3 {auth} {rsuip} RSU-MIB:rsuDsrcFwdProtocol.{index} i 2'.format(auth=snmp_authstring, rsuip=rsu_ip, index=rsu_index))
   os.system('snmpset -v 3 {auth} {rsuip} RSU-MIB:rsuDsrcFwdRssi.{index} i -100'.format(auth=snmp_authstring, rsuip=rsu_ip, index=rsu_index))
   os.system('snmpset -v 3 {auth} {rsuip} RSU-MIB:rsuDsrcFwdMsgInterval.{index} i 1'.format(auth=snmp_authstring, rsuip=rsu_ip, index=rsu_index))
+  # Start datetime, hex value 0C1F07B21100 is Dec 31, 1970 17:00
   os.system('snmpset -v 3 {auth} {rsuip} RSU-MIB:rsuDsrcFwdDeliveryStart.{index} x 0C1F07B21100'.format(auth=snmp_authstring, rsuip=rsu_ip, index=rsu_index))
+  # Stop datetime, hex value 0C1F07B21100 is Dec 31, 2036 17:00
   os.system('snmpset -v 3 {auth} {rsuip} RSU-MIB:rsuDsrcFwdDeliveryStop.{index} x 0C1F07F41100'.format(auth=snmp_authstring, rsuip=rsu_ip, index=rsu_index))
   os.system('snmpset -v 3 {auth} {rsuip} RSU-MIB:rsuDsrcFwdEnable.{index} i 1'.format(auth=snmp_authstring, rsuip=rsu_ip, index=rsu_index))
 
   # Put RSU in run mode
   set_rsu_status(rsu_ip, operate=True)
   
-  os.system('snmpwalk -v 3 -u {auth} {rsuip} 1.0.15628.4.1 | grep 4.1.7'.format(auth=snmp_authstring, rsuip=rsu_ip))
+  os.system('snmpwalk -v 3 {auth} {rsuip} 1.0.15628.4.1 | grep 4.1.7'.format(auth=snmp_authstring, rsuip=rsu_ip))
 
-def main(rsu_csv, dest_ip, udp_port, rsu_index):
+def main(rsu_csv, dest_ip, udp_port, rsu_index, endian):
   for row in rsu_csv: 
-    config_msgfwd(row[0], str(dest_ip), str(udp_port), str(rsu_index))
+    config_msgfwd(row[0], str(dest_ip), str(udp_port), str(rsu_index), int(endian))
 
 if __name__ == '__main__':
   with open(sys.argv[1], newline='') as csvfile:
     doc = csv.reader(csvfile, delimiter=',')
-    main(doc, sys.argv[2], sys.argv[3], sys.argv[4])
+	# rsu_csv, dest_ip, udp_port, rsu_index, endian_type
+    main(doc, sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
     
